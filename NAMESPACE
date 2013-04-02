@@ -1,0 +1,15 @@
+export(
+    classify,
+    cluster,
+    cvFolds,
+    featureFilter,
+    input,
+    misclassificationPenalties,
+    normalize,
+    parscores,
+    regression,
+    successes,
+    trainTest
+)
+importFrom(plyr, ddply)
+importFrom(foreach, foreach, "%dopar%")
