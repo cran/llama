@@ -15,7 +15,8 @@ cvFolds(data, nfolds = 10, stratify = T)
   the data to use. The structure returned by \code{input}.
 }
   \item{nfolds}{
-  the number of folds. Defaults to 10.
+  the number of folds. Defaults to 10. If -1 is given, leave-one-out
+  cross-validation folds are produced.
 }
   \item{stratify}{
   whether to stratify the folds. Defaults to TRUE.

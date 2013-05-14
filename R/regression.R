@@ -42,7 +42,7 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
         combinedmodel = combine(data$data$best~., data=data.frame(expand(trainpredictions)))
     }
 
-    return(list(predictions=predictions, predictor=function(x) {
+    return(list(predictions=predictions, models=models, predictor=function(x) {
         tsf = pre(subset(x, T, data$features), fs$meta)
 
         performancePredictions = matrix(nrow=nrow(tsf$features), ncol=length(data$performance))

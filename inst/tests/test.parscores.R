@@ -42,3 +42,16 @@ test_that("parscores allows to specify factor", {
     expect_true(all(sapply(parscores(d, preda, 100), sum) == 500))
     expect_true(all(sapply(parscores(d, predb, 100), sum) == 0))
 })
+
+test_that("parscores allows to specify timeout", {
+    fold = data.frame(a=rep.int(1, 5), b=rep.int(0, 5),
+        d=rep.int(F, 5), e=rep.int(T, 5))
+    d = list(test=list(fold, fold), performance=c("a", "b"), success=c("d", "e"))
+    as = rep.int("a", 5)
+    bs = rep.int("b", 5)
+    preda = list(as, as)
+    predb = list(bs, bs)
+
+    expect_true(all(sapply(parscores(d, preda, timeout=5), sum) == 250))
+    expect_true(all(sapply(parscores(d, predb, timeout=5), sum) == 0))
+})

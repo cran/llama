@@ -1,5 +1,5 @@
 parscores <-
-function(data=NULL, predictions=NULL, factor=10) {
+function(data=NULL, predictions=NULL, factor=10, timeout=NULL) {
     if(is.null(data$success)) {
         stop("Need successes to compute PAR scores.")
     }
@@ -15,7 +15,7 @@ function(data=NULL, predictions=NULL, factor=10) {
             successes = subset(data$test[[i]][j,], T, data$success)
             score = as.numeric(perfs[which(data$performance == predictions[[i]][j])])
             if(!as.logical(successes[which(data$performance == predictions[[i]][j])])) {
-                score = score * factor
+                score = (if(is.null(timeout)) { score } else { timeout }) * factor
             }
             score
             })

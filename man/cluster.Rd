@@ -8,7 +8,8 @@ Build a cluster model that predicts the algorithm to use based on the features
 of the problem.
 }
 \usage{
-cluster(clusterer = NULL, data = NULL, pre = function(x, y=NULL) { list(features=x) })
+cluster(clusterer = NULL, data = NULL,
+    pre = function(x, y=NULL) { list(features=x) })
 }
 \arguments{
   \item{clusterer}{
@@ -52,6 +53,9 @@ used to combine the ensemble predictions instead of majority voting.
  \item{predictor}{a function that encapsulates the model learned on the
  \emph{entire} data set. Can be called with data for the same features with the
  same feature names as the training data to obtain predictions.}
+ \item{models}{the list of models trained on the \emph{entire} data set. This is
+ meant for debugging/inspection purposes and does not include any models used to
+ combine predictions of individual models.}
 }
 \author{
 Lars Kotthoff
@@ -73,13 +77,18 @@ sum(unlist(successes(trainTest, res$predictions)))
 res$predictor(subset(satsolvers$data, TRUE, satsolvers$features))
 
 library(flexclust)
-res = cluster(clusterer=function(x) { kcca(x, length(satsolvers$performance)) }, data=trainTest, pre=normalize)
+res = cluster(clusterer=function(x) { kcca(x, length(satsolvers$performance)) },
+    data=trainTest, pre=normalize)
 
 # ensemble clustering
-rese = cluster(clusterer=list(XMeans, make_Weka_clusterer("weka/clusterers/EM"), function(x) { kcca(x, length(satsolvers$performance)) }), data=trainTest, pre=normalize)
+rese = cluster(clusterer=list(XMeans, make_Weka_clusterer("weka/clusterers/EM"),
+    function(x) { kcca(x, length(satsolvers$performance)) }),
+    data=trainTest, pre=normalize)
 
 # ensemble clustering with a classifier to combine predictions
-rese = cluster(clusterer=list(XMeans, make_Weka_clusterer("weka/clusterers/EM"), function(x) { kcca(x, length(satsolvers$performance)) }, .combine=J48), data=trainTest, pre=normalize)
+rese = cluster(clusterer=list(XMeans, make_Weka_clusterer("weka/clusterers/EM"),
+    function(x) { kcca(x, length(satsolvers$performance)) }, .combine=J48),
+    data=trainTest, pre=normalize)
 }
 }
 \keyword{ ~cluster }

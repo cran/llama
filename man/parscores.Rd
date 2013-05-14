@@ -8,7 +8,7 @@ Calculates the penalized average runtime score which is commonly used for
 evaluating satisfiability solvers on a set of problems.
 }
 \usage{
-parscores(data, predictions, factor = 10)
+parscores(data, predictions, factor = 10, timeout)
 }
 \arguments{
   \item{data}{the data used to induce the model. The same as given to
@@ -18,12 +18,14 @@ parscores(data, predictions, factor = 10)
       list as returned by the predictor return value of those functions.}
   \item{factor}{the penalization factor to use for non-successful choices.
       Default 10.}
+  \item{timeout}{the timeout value to be multiplied by the penalization factor.
+      If not specified, the performance value of the respective algorithm that
+      was unable to solve the problem is used. That is, it is assumed that the
+      performance value is the timeout.}
 }
 \details{
-Returns the performances of the respective chosen algorithm on each datum. If
-the chosen algorithm is not able to solve the problem successfully, its
-performance value is multiplied by the penalization factor. That is, it is
-assumed that the performance value is the timeout.
+Returns the penalized average runtime performances of the respective chosen
+algorithm on each datum.
 }
 \value{
 A list (or list of lists, depending on the format of \code{predictions}) of the
@@ -47,6 +49,9 @@ sum(unlist(parscores(trainTest, res$predictions)))
 
 # use factor of 5 instead of 10.
 sum(unlist(parscores(trainTest, res$predictions, 5)))
+
+# explicitly specify timeout.
+sum(unlist(parscores(trainTest, res$predictions, timeout = 3600)))
 }
 }
 \keyword{ ~models }

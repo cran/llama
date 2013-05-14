@@ -4,6 +4,7 @@ export(
     cvFolds,
     featureFilter,
     input,
+    imputeCensored,
     misclassificationPenalties,
     normalize,
     parscores,

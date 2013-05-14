@@ -8,7 +8,9 @@ Build a regression model that predicts the algorithm to use based on the
 features of the problem.
 }
 \usage{
-regression(regressor = NULL, data = NULL, pre = function(x, y=NULL) { list(features=x) }, combine = min, stack = F, expand = identity)
+regression(regressor = NULL, data = NULL,
+    pre = function(x, y=NULL) { list(features=x) },
+    combine = min, stack = F, expand = identity)
 }
 \arguments{
   \item{regressor}{
@@ -64,6 +66,9 @@ differences (see examples).
  \item{predictor}{a function that encapsulates the regression model learned on
  the \emph{entire} data set. Can be called with data for the same features with
  the same feature names as the training data to obtain predictions.}
+ \item{models}{the list of models trained on the \emph{entire} data set. This is
+ meant for debugging/inspection purposes and does not include any models used to
+ combine predictions of individual models.}
 }
 \author{
 Lars Kotthoff
@@ -94,7 +99,9 @@ res = regression(regressor=LinearRegression, data=trainTest)
 ress = regression(regressor=LinearRegression, data=trainTest, combine=J48, stack=TRUE)
 
 # add pairwise differences to performance predictions before running classifier
-ress = regression(regressor=LinearRegression, data=trainTest, combine=J48, stack=TRUE, expand=function(x) { cbind(x, combn(c(1:ncol(x)), 2, function(y) { abs(x[,y[1]] - x[,y[2]]) })) })
+ress = regression(regressor=LinearRegression, data=trainTest, combine=J48, stack=TRUE,
+    expand=function(x) { cbind(x, combn(c(1:ncol(x)), 2,
+        function(y) { abs(x[,y[1]] - x[,y[2]]) })) })
 }
 }
 \keyword{ ~regression }

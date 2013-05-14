@@ -18,6 +18,16 @@ test_that("cvFolds allows to specify number of folds", {
     expect_true(all(sapply(dfs$test, nrow) == 5))
 })
 
+test_that("cvFolds allows -1 for leave-one-out", {
+    d = list(data=data.frame(a=rep.int(0, 10), best=rep.int(0, 10)))
+
+    dfs = cvFolds(d, nfolds=-1)
+    expect_equal(length(dfs$train), 10)
+    expect_equal(length(dfs$test), 10)
+    expect_true(all(sapply(dfs$train, nrow) == 9))
+    expect_true(all(sapply(dfs$test, nrow) == 1))
+})
+
 test_that("cvFolds stratifies", {
     d = list(data=data.frame(a=rep.int(0, 10), best=c(rep.int(0, 5), rep.int(1, 5))))
 

@@ -74,7 +74,7 @@ function(clusterer=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
         combinedmodel = combinator(data$data$best~., data=data.frame(trainpredictions))
     }
 
-    return(list(predictions=predictions, predictor=function(x) {
+    return(list(predictions=predictions, models=models, predictor=function(x) {
         tsf = pre(subset(x, T, data$features), fs$meta)
 
         ensemblepredictions = matrix(nrow=nrow(tsf$features), ncol=length(clusterer))

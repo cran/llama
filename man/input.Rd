@@ -57,6 +57,7 @@ Lars Kotthoff
 # ID,alg1,alg2
 # 0,T,F
 # ...
-\dontrun{input(read.csv("features.csv"), read.csv("performance.csv"), read.csv("success.csv"))}
+\dontrun{input(read.csv("features.csv"), read.csv("performance.csv"),
+    read.csv("success.csv"))}
 }
 \keyword{ ~models }
