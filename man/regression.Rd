@@ -60,9 +60,17 @@ performance predictions for the individual algorithms. Optionally, \code{expand}
 can be used to supply a function that will modify the features given to the
 classifier, e.g. augment the performance predictions with the pairwise
 differences (see examples).
+
+If \code{stack} is not true and \code{combine} is anything but \code{min} or
+\code{max}, things will probably break.
 }
 \value{
- \item{predictions}{a list of lists with the predictions for each test set.}
+ \item{predictions}{a list of lists of data frames with the predictions for each
+ test set. Each data frame has columns \code{algorithm} and \code{score} and is
+ sorted according to preference, with the most preferred algorithm first. The
+ \code{score} value corresponds to the predicted performance value. If
+ stacking is used, each data frame contains simply the best algorithm with a
+ score of 1.}
  \item{predictor}{a function that encapsulates the regression model learned on
  the \emph{entire} data set. Can be called with data for the same features with
  the same feature names as the training data to obtain predictions.}
@@ -74,7 +82,7 @@ differences (see examples).
 Lars Kotthoff
 }
 \seealso{
-\code{\link{classify}}, \code{\link{cluster}}
+\code{\link{classify}}, \code{\link{classifyPairs}}, \code{\link{cluster}}
 }
 \references{
 Kotthoff, L. (2012)

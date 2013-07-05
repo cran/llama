@@ -28,9 +28,10 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
         }
         if(is.function(combinator)) {
             combinedmodel = combinator(data$train[[i]]$best~., data=data.frame(trainpredictions))
-            combinedpredictions = as.character(predict(combinedmodel, data.frame(ensemblepredictions)))
+            preds = as.character(predict(combinedmodel, data.frame(ensemblepredictions)))
+            combinedpredictions = lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) })
         } else {
-            combinedpredictions = apply(ensemblepredictions, 1, function(l) { names(sort(table(l), decreasing=T)[1]) })
+            combinedpredictions = apply(ensemblepredictions, 1, function(l) { setNames(data.frame(as.table(sort(table(l), decreasing=T))), predNames) })
         }
         return(list(combinedpredictions))
     }
@@ -54,9 +55,10 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
             ensemblepredictions[,i] = as.character(predict(models[[i]], tsf$features))
         }
         if(is.function(combinator)) {
-            combinedpredictions = as.character(predict(combinedmodel, data.frame(ensemblepredictions)))
+            preds = as.character(predict(combinedmodel, data.frame(ensemblepredictions)))
+            combinedpredictions = lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) })
         } else {
-            combinedpredictions = apply(ensemblepredictions, 1, function(l) { names(sort(table(l), decreasing=T)[1]) })
+            combinedpredictions = apply(ensemblepredictions, 1, function(l) { setNames(data.frame(as.table(sort(table(l), decreasing=T))), predNames) })
         }
         return(combinedpredictions)
     }))

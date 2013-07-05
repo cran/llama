@@ -1,5 +1,6 @@
 export(
     classify,
+    classifyPairs,
     cluster,
     cvFolds,
     featureFilter,
@@ -9,8 +10,10 @@ export(
     normalize,
     parscores,
     regression,
+    singleBest,
     successes,
-    trainTest
+    trainTest,
+    vbs
 )
 importFrom(plyr, ddply)
 importFrom(foreach, foreach, "%dopar%")

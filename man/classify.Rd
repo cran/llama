@@ -47,7 +47,12 @@ the same properties as the other ones and will be used to combine the ensemble
 predictions instead of majority voting.
 }
 \value{
- \item{predictions}{a list of lists with the predictions for each test set.}
+ \item{predictions}{a list of lists of data frames with the predictions for each
+ test set. Each data frame has columns \code{algorithm} and \code{score} and is
+ sorted according to preference, with the most preferred algorithm first. The
+ score corresponds to the number of classifiers that predicted the respective
+ algorithm. If stacking is used, each data frame contains simply the best
+ algorithm with a score of 1.}
  \item{predictor}{a function that encapsulates the classifier learned on the
  \emph{entire} data set. Can be called with data for the same features with the
  same feature names as the training data to obtain predictions.}
@@ -59,7 +64,7 @@ predictions instead of majority voting.
 Lars Kotthoff
 }
 \seealso{
-\code{\link{cluster}}, \code{\link{regression}}
+\code{\link{classifyPairs}}, \code{\link{cluster}}, \code{\link{regression}}
 }
 \references{
 Kotthoff, L., Miguel, I., Nightingale, P. (2010)

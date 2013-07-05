@@ -12,7 +12,7 @@ function(data=NULL, predictions=NULL) {
     return(post(lapply(1:length(data$test), function(i) {
         sapply(1:nrow(data$test[[i]]), function(j) {
             successes = subset(data$test[[i]][j,], T, data$success)
-            as.logical(successes[which(data$performance == predictions[[i]][j])])
+            as.logical(successes[which(data$performance == as.character(predictions[[i]][[j]]$algorithm[1]))])
             })
         })))
 }

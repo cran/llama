@@ -13,8 +13,8 @@ function(data=NULL, predictions=NULL, factor=10, timeout=NULL) {
         sapply(1:nrow(data$test[[i]]), function(j) {
             perfs = subset(data$test[[i]][j,], T, data$performance)
             successes = subset(data$test[[i]][j,], T, data$success)
-            score = as.numeric(perfs[which(data$performance == predictions[[i]][j])])
-            if(!as.logical(successes[which(data$performance == predictions[[i]][j])])) {
+            score = as.numeric(perfs[which(data$performance == predictions[[i]][[j]]$algorithm[1])])
+            if(!as.logical(successes[which(data$performance == predictions[[i]][[j]]$algorithm[1])])) {
                 score = (if(is.null(timeout)) { score } else { timeout }) * factor
             }
             score

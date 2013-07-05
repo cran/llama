@@ -23,15 +23,24 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
 
         if(stack) {
             combinedmodel = combine(data$train[[i]]$best~., data=data.frame(expand(trainpredictions)))
-            combinedpredictions = as.character(predict(combinedmodel, data.frame(expand(performancePredictions))))
+            preds = as.character(predict(combinedmodel, data.frame(expand(performancePredictions))))
+            combinedpredictions = lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) })
         } else {
-            combinedpredictions = apply(performancePredictions, 1, function(x) { data$performance[head(which(x %in% combine(x)), 1)] })
+            # this is hacky and should be replaced...
+            if(deparse(combine) == ".Primitive(\"min\")") {
+                decreasing = F
+            } else {
+                decreasing = T
+            }
+            combinedpredictions = apply(performancePredictions, 1, function(x) { setNames(data.frame(data$performance[sort.list(x, decreasing=decreasing)], sort(x, decreasing=decreasing)), predNames) })
         }
         return(list(combinedpredictions))
     }
 
     fs = pre(subset(data$data, T, data$features))
     models = lapply(1:length(data$performance), function(i) {
+        # evaluate the predictions to put them into the environment -- this is only so that the tests don't break
+        data$data[[data$performance[i]]]
         return(regressor(data$data[[data$performance[i]]]~., data=fs$features))
     })
     if(stack) {
@@ -44,16 +53,21 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
 
     return(list(predictions=predictions, models=models, predictor=function(x) {
         tsf = pre(subset(x, T, data$features), fs$meta)
-
         performancePredictions = matrix(nrow=nrow(tsf$features), ncol=length(data$performance))
         for (i in 1:length(data$performance)) {
             performancePredictions[,i] = predict(models[[i]], tsf$features)
         }
 
         if(stack) {
-            combinedpredictions = as.character(predict(combinedmodel, data.frame(expand(performancePredictions))))
+            preds = as.character(predict(combinedmodel, data.frame(expand(performancePredictions))))
+            combinedpredictions = lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) })
         } else {
-            combinedpredictions = apply(performancePredictions, 1, function(x) { data$performance[head(which(x %in% combine(x)), 1)] })
+            if(deparse(combine) == ".Primitive(\"min\")") {
+                decreasing = F
+            } else {
+                decreasing = T
+            }
+            combinedpredictions = apply(performancePredictions, 1, function(x) { setNames(data.frame(data$performance[sort.list(x, decreasing=decreasing)], sort(x, decreasing=decreasing)), predNames) })
         }
         return(combinedpredictions)
     }))
