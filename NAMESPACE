@@ -2,6 +2,7 @@ export(
     classify,
     classifyPairs,
     cluster,
+    contributions,
     cvFolds,
     featureFilter,
     input,
@@ -11,9 +12,12 @@ export(
     parscores,
     regression,
     singleBest,
+    singleBestByPar,
+    singleBestBySuccesses,
     successes,
     trainTest,
     vbs
 )
 importFrom(plyr, ddply)
-importFrom(foreach, foreach, "%dopar%")
+importFrom(rJava, J, .jpackage, .jarray)
+importFrom(parallelMap, parallelMap)

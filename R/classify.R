@@ -13,7 +13,7 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
         classifier = classifier[-which(names(classifier) == ".combine")]
     }
 
-    predictions = foreach(i = 1:length(data$train), .combine=append) %dopar% {
+    predictions = parallelMap(function(i) {
         trf = pre(subset(data$train[[i]], T, data$features))
         tsf = pre(subset(data$test[[i]], T, data$features), trf$meta)
 
@@ -34,7 +34,7 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
             combinedpredictions = apply(ensemblepredictions, 1, function(l) { setNames(data.frame(as.table(sort(table(l), decreasing=T))), predNames) })
         }
         return(list(combinedpredictions))
-    }
+    }, 1:length(data$train), simplify=T)
 
     fs = pre(subset(data$data, T, data$features))
     models = lapply(1:length(classifier), function(i) {

@@ -15,11 +15,11 @@ them.
 \tabular{ll}{
 Package: \tab llama\cr
 Type: \tab Package\cr
-Version: \tab 0.4\cr
-Date: \tab 2013-07-05\cr
-Depends: \tab plyr, foreach\cr
-Suggests: \tab RWeka, FSelector\cr
-License: \tab BSD\cr
+Version: \tab 0.5.1\cr
+Date: \tab 2014-01-15\cr
+Depends: \tab plyr, rJava, parallelMap\cr
+Suggests: \tab RWeka, FSelector, e1071, flexclust, testthat\cr
+License: \tab BSD_3_clause\cr
 }
 The package provides functions to read performance data, build performance
 models that enable selection of algorithms (using external machine learning
@@ -49,16 +49,21 @@ At the moment, the implementation of the functions is very much geared towards
 While in theory using other packages and implementations should be possible,
 there may be problems in practice.
 
-The model building functions are transparently parallelizable by loading a
-suitable backend for parallel computation. Note that this does \emph{not} mean
-that all machine learning algorithms used for building models can be
-parallelized safely. In particular \code{RWeka} functions cannot be run in
-parallel safely without loading the package in each executor independently.
+The model building functions are using the \code{parallelMap} package
+(\url{https://github.com/berndbischl/parallelMap}) to parallelize across the
+data partitions (e.g. cross-validation folds). By default, everything is run
+sequentially. By loading a suitable backend (e.g. through
+\code{parallelStartSocket(2)} for parallelization across 2 CPUs using sockets),
+the model building will be parallelized automatically and transparently.
+Note that this does \emph{not} mean that all machine learning algorithms used
+for building models can be parallelized safely. In particular \code{RWeka}
+functions are not thread safe and have to be run in separate processes (e.g. by
+using \code{parallelStartSocket()}).
 }
 \author{
 Lars Kotthoff
 
-contributions by Barry Hurley
+contributions by Barry Hurley, Talal Rahwan
 
 Maintainer: Lars Kotthoff <larsko@4c.ucc.ie>
 }

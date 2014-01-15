@@ -14,7 +14,7 @@ function(clusterer=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
     }
 
     i = 1 # prevent warning when checking package
-    predictions = foreach(i = 1:length(data$train), .combine=append) %dopar% {
+    predictions = parallelMap(function(i) {
         trf = pre(subset(data$train[[i]], T, data$features))
         tsf = pre(subset(data$test[[i]], T, data$features), trf$meta)
 
@@ -63,7 +63,7 @@ function(clusterer=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
             }, ensemblepredictions)
         }
         return(list(combinedpredictions))
-    }
+    }, 1:length(data$train), simplify=T)
 
     fs = pre(subset(data$data, T, data$features))
     models = lapply(1:length(clusterer), function(i) {

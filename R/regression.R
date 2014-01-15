@@ -7,7 +7,7 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
         stop("Need data with train/test split!")
     }
 
-    predictions = foreach(i = 1:length(data$train), .combine=append) %dopar% {
+    predictions = parallelMap(function(i) {
         trf = pre(subset(data$train[[i]], T, data$features))
         tsf = pre(subset(data$test[[i]], T, data$features), trf$meta)
 
@@ -35,7 +35,7 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
             combinedpredictions = apply(performancePredictions, 1, function(x) { setNames(data.frame(data$performance[sort.list(x, decreasing=decreasing)], sort(x, decreasing=decreasing)), predNames) })
         }
         return(list(combinedpredictions))
-    }
+    }, 1:length(data$train), simplify=T)
 
     fs = pre(subset(data$data, T, data$features))
     models = lapply(1:length(data$performance), function(i) {

@@ -13,7 +13,7 @@ function(data=NULL, estimator=lm, epsilon=0.1, maxit=1000) {
     data$original_data = data$data
 
     i = 0
-    foreach(i = 1:length(data$success)) %dopar% {
+    for(i in 1:length(data$success)) {
         s = data$success[i]
         p = data$performance[i]
         if(!any(data$data[[s]])) {
