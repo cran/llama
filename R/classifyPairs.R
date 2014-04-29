@@ -1,5 +1,5 @@
 classifyPairs <-
-function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }, minimize=T, combinator=NULL) {
+function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }, combinator=NULL) {
     if(is.null(classifier)) {
         stop("No classifier given!")
     }
@@ -7,6 +7,7 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
         stop("Need data with train/test split!")
     }
 
+    totalBests = breakBestTies(data)
     combns = combn(data$performance, 2)
     predictions = parallelMap(function(i) {
         trf = pre(subset(data$train[[i]], T, data$features))
@@ -15,7 +16,7 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
         trainpredictions = matrix(nrow=nrow(trf$features), ncol=ncol(combns))
         pairpredictions = matrix(nrow=nrow(tsf$features), ncol=ncol(combns))
         for (j in 1:ncol(combns)) {
-            if(minimize) {
+            if(data$minimize) {
                 cmp = function(x, y) {
                     sapply(data$train[[i]][[x]] < data$train[[i]][[y]], function(z) { if(z) { x } else { y } })
                 }
@@ -33,7 +34,8 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
         }
 
         if(is.function(combinator)) {
-            combinedmodel = combinator(data$train[[i]]$best~., data=data.frame(trainpredictions))
+            trainBests = breakBestTies(data, i)
+            combinedmodel = combinator(trainBests~., data=data.frame(trainpredictions))
             preds = as.character(predict(combinedmodel, data.frame(pairpredictions)))
             combinedpredictions = lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) })
         } else {
@@ -44,7 +46,7 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
 
     fs = pre(subset(data$data, T, data$features))
     models = lapply(1:ncol(combns), function(i) {
-        if(minimize) {
+        if(data$minimize) {
             cmp = function(x, y) {
                 sapply(data$data[[x]] < data$data[[y]], function(z) { if(z) { x } else { y } })
             }
@@ -61,7 +63,7 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
         for(i in 1:ncol(combns)) {
             trainpredictions[,i] = as.character(predict(models[[i]], fs$features))
         }
-        combinedmodel = combinator(data$data$best~., data=data.frame(trainpredictions))
+        combinedmodel = combinator(totalBests~., data=data.frame(trainpredictions))
     }
 
     return(list(predictions=predictions, models=models, predictor=function(x) {

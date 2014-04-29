@@ -7,7 +7,7 @@ function(filter=NULL, data=NULL) {
         stop("No data given!")
     }
     data$original_features = data$features
-    b = data$data$best
+    b = breakBestTies(data)
     data$features = filter(b~., subset(data$data, T, data$features))
     return(data)
 }

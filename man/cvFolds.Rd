@@ -43,12 +43,12 @@ Lars Kotthoff
 }
 \examples{
 data(satsolvers)
-trainTest = cvFolds(satsolvers)
+folds = cvFolds(satsolvers)
 
 # use 5 folds instead of the default 10
-trainTest5 = cvFolds(satsolvers, 5)
+folds5 = cvFolds(satsolvers, 5)
 
 # don't stratify
-trainTestU = cvFolds(satsolvers, stratify=FALSE)
+foldsU = cvFolds(satsolvers, stratify=FALSE)
 }
 \keyword{ ~models }

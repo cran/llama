@@ -8,6 +8,23 @@ test_that("cvFolds splits", {
     expect_true(all(sapply(dfs$test, nrow) == 1))
 })
 
+test_that("cvFolds complains when there's not enough data", {
+    d = list(data=data.frame(a=rep.int(0, 5), best=rep.int(0, 5)))
+
+    expect_error(cvFolds(d), "Requested 10 folds, but cannot produce this many.")
+})
+
+test_that("cvFolds splits with best list", {
+    d = list(data=data.frame(a=rep.int(0, 10)))
+    d$data$best = list(0, 0, 0, c(0,1), 0, 0, c(0,1), 0, 0, 0)
+
+    dfs = cvFolds(d, nfolds=2)
+    expect_equal(length(dfs$train), 2)
+    expect_equal(length(dfs$test), 2)
+    expect_true(all(sapply(dfs$train, nrow) == 5))
+    expect_true(all(sapply(dfs$test, nrow) == 5))
+})
+
 test_that("cvFolds allows to specify number of folds", {
     d = list(data=data.frame(a=rep.int(0, 10), best=rep.int(0, 10)))
 

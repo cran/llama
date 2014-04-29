@@ -1,6 +1,7 @@
 \name{misc}
 \alias{vbs}
 \alias{singleBest}
+\alias{singleBestByCount}
 \alias{singleBestByPar}
 \alias{singleBestBySuccesses}
 \title{
@@ -12,6 +13,7 @@ Convenience functions for computing predictions based on input data.
 \usage{
 vbs(data = NULL)
 singleBest(data = NULL)
+singleBestByCount(data = NULL)
 singleBestByPar(data = NULL, factor = 10)
 singleBestBySuccesses(data = NULL)
 }
@@ -27,14 +29,17 @@ singleBestBySuccesses(data = NULL)
 \code{vbs} and \code{singleBest} take a data frame of input data and return
 predictions that correspond to the virtual best and the single best algorithm,
 respectively. The virtual best picks the best algorithm for each instance. The
-single best picks the algorithm that is the best most often over the entire data
-set, even if for a particular instance it is not, where best is defined as
-having the best performance metric.
+single best picks the algorithm that has the best cumulative performance over
+the entire data set.
 
-\code{singleBestByPar} and \code{singleBestBySuccesses} aggregate the PAR score
-and number of successes, respectively, over the \emph{entire} data set. The
-single algorithm with the lowest PAR score and the highest number of successes
-on the data is chosen.
+\code{singleBestByCount} returns the algorithm that has the best performance
+the highest number of times over the entire data set. Only whether or not an
+algorithm is the best matters for this, not the difference to other algorithms.
+
+\code{singleBestByPar} aggregates the PAR score over the entire data set and
+returns the algorithm with the lowest overall PAR score.
+\code{singleBestBySuccesses} counts the number of successes over the data set
+and returns the algorithm with the highest overall number of successes.
 }
 \value{
 A list of predictions, that is, data frames with columns \code{algorithm} and
@@ -50,15 +55,15 @@ Lars Kotthoff
 data(satsolvers)
 
 # number of total successes for virtual best solver
-print(sum(successes(satsolvers, vbs(satsolvers))))
-# number of total successes for single best solver
-print(sum(successes(satsolvers, singleBest(satsolvers))))
+print(sum(successes(satsolvers, vbs)))
+# number of total successes for single best solver by count
+print(sum(successes(satsolvers, singleBestByCount)))
 
 # sum of PAR10 scores for single best solver by PAR10 score
-print(sum(parscores(satsolvers, singleBestByPar(satsolvers))))
+print(sum(parscores(satsolvers, singleBestByPar)))
 
 # number of total successes for single best solver by successes
-print(sum(successes(satsolvers, singleBestBySuccesses(satsolvers))))
+print(sum(successes(satsolvers, singleBestBySuccesses)))
 }
 }
 \keyword{ ~models }

@@ -10,14 +10,14 @@ setMethod("predict", signature(object="testregressor"), predict.testregressor, w
 
 test_that("regression predicts", {
     fold = data.frame(a=rep.int(0, 10), best=rep.int("b", 10), foo=rep.int(1, 10), bar=rep.int(2, 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("foo", "bar"))
+    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("foo", "bar"), minimize=T)
     res = regression(testregressor, d)
     expect_true(all(sapply(1:length(res$predictions), function(i) { sapply(res$predictions[[i]], function(x) { x == data.frame(algorithm=c("foo", "bar"), score=c(1, 2)) }) })))
 })
 
 test_that("regression returns predictor", {
     fold = data.frame(a=rep.int(0, 10), best=rep.int("b", 10), foo=rep.int(1, 10), bar=rep.int(2, 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("foo", "bar"))
+    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("foo", "bar"), minimize=T)
     res = regression(testregressor, d)
     expect_true(all(sapply(res$predictor(fold), function(x) { x == data.frame(algorithm=c("foo", "bar"), score=c(1, 2)) })))
 })
@@ -32,8 +32,8 @@ test_that("regression raises error without train/test split", {
 
 test_that("regression allows to combine by max", {
     fold = data.frame(a=rep.int(0, 10), best=rep.int("b", 10), foo=rep.int(2, 10), bar=rep.int(1, 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("foo", "bar"))
-    res = regression(testregressor, d, combine=max)
+    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("foo", "bar"), minimize=F)
+    res = regression(testregressor, d)
     expect_true(all(sapply(1:length(res$predictions), function(i) { sapply(res$predictions[[i]], function(x) { x == data.frame(algorithm=c("foo", "bar"), score=c(2, 1)) }) })))
     expect_true(all(sapply(res$predictor(fold), function(x) { x == data.frame(algorithm=c("foo", "bar"), score=c(2, 1)) })))
 })
@@ -44,8 +44,8 @@ setMethod("predict", signature(object="testclassifier"), predict.testclassifier,
 
 test_that("regression allows stacking", {
     fold = data.frame(a=rep.int(0, 10), best=rep.int("b", 10), foo=rep.int(1, 10), bar=rep.int(2, 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("foo", "bar"))
-    res = regression(testregressor, d, combine=testclassifier, stack=T)
+    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("foo", "bar"), minimize=T)
+    res = regression(testregressor, d, combine=testclassifier)
     expect_true(all(sapply(1:length(res$predictions), function(i) { sapply(res$predictions[[i]], function(x) { x == data.frame(algorithm="b", score=1) }) })))
     expect_true(all(sapply(res$predictor(fold), function(x) { x == data.frame(algorithm="b", score=1) })))
 })

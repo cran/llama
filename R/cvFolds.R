@@ -4,11 +4,18 @@ function(data, nfolds=10, stratify=T) {
         stratify = F
         nfolds = nrow(data$data)
     }
-    tmp = ddply(data$data, if(stratify) { "best" }, function(x) {
+    if(stratify) {
+        data$data$stratifier = sapply(data$data$best, paste, collapse="-")
+    }
+    tmp = ddply(data$data, if(stratify) "stratifier", function(x) {
         n = nrow(x)
         x$fold = rep(1:nfolds, length.out = n)[sample(n, n)]
         x
     })
+    data$data$stratifier = NULL
+    if(length(unique(tmp$fold)) != nfolds) {
+        stop(paste("Requested ", nfolds, " folds, but cannot produce this many.", sep=""))
+    }
     parts = split(data$data, tmp$fold)
     return(c(data,
             list(train = lapply(1:nfolds, function(x) { return(unsplit(parts[-x], tmp$fold[tmp$fold!=x])) }),

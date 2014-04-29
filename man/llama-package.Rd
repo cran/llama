@@ -15,8 +15,8 @@ them.
 \tabular{ll}{
 Package: \tab llama\cr
 Type: \tab Package\cr
-Version: \tab 0.5.1\cr
-Date: \tab 2014-01-15\cr
+Version: \tab 0.6\cr
+Date: \tab 2014-04-29\cr
 Depends: \tab plyr, rJava, parallelMap\cr
 Suggests: \tab RWeka, FSelector, e1071, flexclust, testthat\cr
 License: \tab BSD_3_clause\cr
@@ -72,9 +72,9 @@ Kotthoff, L. (2013)
 LLAMA: Leveraging Learning to Automatically Manage Algorithms.
 \emph{arXiv:1306.1031}.
 
-Kotthoff, L. (2012)
+Kotthoff, L. (2014)
 Algorithm Selection for Combinatorial Search Problems: A survey.
-\emph{University College Cork (Technical Report)}.
+\emph{AI Magazine}.
 }
 \keyword{ package }
 \examples{
@@ -82,29 +82,29 @@ Algorithm Selection for Combinatorial Search Problems: A survey.
 library(RWeka)
 
 data(satsolvers)
-trainTest = cvFolds(satsolvers)
+folds = cvFolds(satsolvers)
 
-res = classify(classifier=J48, data=trainTest)
+model = classify(classifier=J48, data=folds)
 # print the total number of successes
-print(sum(unlist(successes(trainTest, res$predictions))))
+print(sum(successes(folds, model)))
 # print the total misclassification penalty
-print(sum(unlist(misclassificationPenalties(trainTest, res$predictions))))
+print(sum(misclassificationPenalties(folds, model)))
 # print the total PAR10 score
-print(sum(unlist(parscores(trainTest, res$predictions))))
+print(sum(parscores(folds, model)))
 
 # number of total successes for virtual best solver for comparison
-print(sum(successes(satsolvers, vbs(satsolvers))))
+print(sum(successes(satsolvers, vbs)))
 
 # print predictions on the entire data set
-print(res$predictor(subset(satsolvers$data, TRUE, satsolvers$features)))
+print(model$predictor(subset(satsolvers$data, TRUE, satsolvers$features)))
 
 # filter features and train a regression model
 library(FSelector)
 
 filtered = featureFilter(cfs, satsolvers)
 folds = cvFolds(filtered)
-res = regression(regressor=LinearRegression, data=folds)
+model = regression(regressor=LinearRegression, data=folds)
 # print the total number of successes
-print(sum(unlist(successes(folds, res$predictions))))
+print(sum(successes(folds, model)))
 }
 }

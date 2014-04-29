@@ -10,8 +10,7 @@ determine the best overall algorithm.
 }
 \usage{
 classifyPairs(classifier = NULL, data = NULL,
-    pre = function(x, y=NULL) { list(features=x) }, minimize = T,
-    combinator = NULL)
+    pre = function(x, y=NULL) { list(features=x) }, combinator = NULL)
 }
 \arguments{
   \item{classifier}{
@@ -26,10 +25,6 @@ classifyPairs(classifier = NULL, data = NULL,
   \item{pre}{
   a function to preprocess the data. Currently only \code{normalize}.
   Optional. Does nothing by default.
-}
-  \item{minimize}{
-  Whether the algorithm with the lower performance number is better. Optional.
-  Default true.
 }
   \item{combinator}{
   The classifier function to predict the overall best algorithm given the
@@ -46,8 +41,8 @@ overall algorithm using \code{combinator} (if supplied). It \code{combinator} is
 not supplied, the best overall algorithm is determined by majority vote.
 
 Which algorithm is better of a pair is determined by comparing their performance
-scores. By default, the lower score is assumed to be better (\code{minimize =
-T}).
+scores. Whether a lower performance number is better or not is determined by
+what was specified when the LLAMA data frame was created.
 
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
@@ -91,12 +86,9 @@ trainTest = cvFolds(satsolvers)
 library(RWeka)
 res = classifyPairs(classifier=J48, data=trainTest)
 # the total number of successes
-sum(unlist(successes(trainTest, res$predictions)))
+sum(successes(trainTest, res))
 # predictions on the entire data set
 res$predictor(subset(satsolvers$data, TRUE, satsolvers$features))
-
-# larger performance score is better
-res = classifyPairs(classifier=J48, data=trainTest, minimize=FALSE)
 
 # combine predictions using J48 induced classifier instead of majority vote
 res = classifyPairs(classifier=J48, data=trainTest, combinator=J48)

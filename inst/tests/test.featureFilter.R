@@ -1,7 +1,9 @@
 test_that("featureFilter filters", {
     origfeat = c("a")
     filterfeat = c("b")
-    d = list(data=data.frame(a=rep.int(1, 10), best=rep.int("a", 10)), features=origfeat)
+    d = list(data=data.frame(a=rep.int(1, 10), best=rep.int("a", 10)),
+            performance=c("a"), minimize=T,
+            features=origfeat)
     f = function(formula, data) { return(filterfeat) }
 
     df = featureFilter(f, d)

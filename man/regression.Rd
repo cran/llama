@@ -10,7 +10,7 @@ features of the problem.
 \usage{
 regression(regressor = NULL, data = NULL,
     pre = function(x, y=NULL) { list(features=x) },
-    combine = min, stack = F, expand = identity)
+    combine = NULL, expand = identity)
 }
 \arguments{
   \item{regressor}{
@@ -28,41 +28,32 @@ regression(regressor = NULL, data = NULL,
 }
   \item{combine}{
   the function used to combine the predictions of the individual regression
-  models. Default \code{min}. See details.
-}
-  \item{stack}{
-  whether the function given in \code{combine} is a classifier that should be
-  used to predict the algorithm to choose based on the predicted performances.
-  Default false.
+  models for stacking. Default \code{NULL}. See details.
 }
   \item{expand}{
   a function that takes a matrix of performance predictions (columns are
   algorithms, rows problem instances) and transforms it into a matrix with the
-  same number of rows. Only meaningful if \code{stack} is true. Default is the
-  identity function, which will leave the matrix unchanged. See examples.
+  same number of rows. Only meaningful if \code{combine} is not null. Default is
+  the identity function, which will leave the matrix unchanged. See examples.
 }
 }
 \details{
 \code{regression} takes \code{data} and processes it using \code{pre} (if
 supplied). \code{regressor} is called to induce separate regression models for
-each of the algorithms to predict its performance. The predicted performances
-are combined using \code{combine} to choose the best algorithm. That is, the
-algorithm with the predicted performance that \code{combine} chooses is
-selected.
+each of the algorithms to predict its performance. The best algorithm is
+determined from the predicted performances by examining whether performance is
+to be minimized or not, as specified when creating the data structure though
+\code{input}.
 
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
 
-If \code{stack} is true, the function given in \code{combine} is assumed to be a
-classifier with the same properties as classifiers given to \code{classify}
-and will be used to learn a model to predict the best algorithm given the
-performance predictions for the individual algorithms. Optionally, \code{expand}
-can be used to supply a function that will modify the features given to the
-classifier, e.g. augment the performance predictions with the pairwise
-differences (see examples).
-
-If \code{stack} is not true and \code{combine} is anything but \code{min} or
-\code{max}, things will probably break.
+If \code{combine} is not null, it is assumed to be a classifier with the same
+properties as classifiers given to \code{classify} and will be used to learn a
+model to predict the best algorithm given the performance predictions for the
+individual algorithms. Optionally, \code{expand} can be used to supply a
+function that will modify the features given to the classifier, e.g. augment the
+performance predictions with the pairwise differences (see examples).
 }
 \value{
  \item{predictions}{a list of lists of data frames with the predictions for each
@@ -96,7 +87,7 @@ trainTest = cvFolds(satsolvers)
 
 res = regression(regressor=lm, data=trainTest)
 # the total number of successes
-sum(unlist(successes(trainTest, res$predictions)))
+sum(successes(trainTest, res))
 # predictions on the entire data set
 res$predictor(subset(satsolvers$data, TRUE, satsolvers$features))
 
@@ -104,10 +95,10 @@ library(RWeka)
 res = regression(regressor=LinearRegression, data=trainTest)
 
 # combine performance predictions using classifier
-ress = regression(regressor=LinearRegression, data=trainTest, combine=J48, stack=TRUE)
+ress = regression(regressor=LinearRegression, data=trainTest, combine=J48)
 
 # add pairwise differences to performance predictions before running classifier
-ress = regression(regressor=LinearRegression, data=trainTest, combine=J48, stack=TRUE,
+ress = regression(regressor=LinearRegression, data=trainTest, combine=J48,
     expand=function(x) { cbind(x, combn(c(1:ncol(x)), 2,
         function(y) { abs(x[,y[1]] - x[,y[2]]) })) })
 }

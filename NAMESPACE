@@ -12,6 +12,7 @@ export(
     parscores,
     regression,
     singleBest,
+    singleBestByCount,
     singleBestByPar,
     singleBestBySuccesses,
     successes,

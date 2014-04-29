@@ -1,5 +1,5 @@
 cluster <-
-function(clusterer=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }) {
+function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL) { list(features=x) }) {
     if(is.null(clusterer)) {
         stop("No clusterer given!")
     }
@@ -13,6 +13,21 @@ function(clusterer=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
         clusterer = clusterer[-which(names(clusterer) == ".combine")]
     }
 
+    if(bestBy == "performance") {
+        innerbest = function(ss) { sort(sapply(data$performance, function(x) { sum(ss[x]) }), decreasing=!data$minimize) }
+    } else if(bestBy == "count") {
+        innerbest = function(ss) { sort(table(unlist(ss$best)), decreasing=!data$minimize) }
+    } else if(bestBy == "successes") {
+        if(is.null(data$success)) {
+            stop("Need successes to determine best by successes!")
+        }
+        innerbest = function(ss) { setNames(sort(sapply(data$success, function(x) { colSums(ss[x])[1] }), decreasing=T), data$performance) }
+    } else {
+        stop(paste("Unknown bestBy: ", bestBy, sep=""))
+    }
+
+    bestfun = function(ss) { setNames(data.frame(as.table(innerbest(ss))), predNames) }
+
     i = 1 # prevent warning when checking package
     predictions = parallelMap(function(i) {
         trf = pre(subset(data$train[[i]], T, data$features))
@@ -23,12 +38,12 @@ function(clusterer=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
         for(j in 1:length(clusterer)) {
             model = clusterer[[j]](trf$features)
             trainclusters = predict(model)
-            best = by(data$train[[i]], trainclusters, function(x) { setNames(data.frame(as.table(sort(table(x$best), decreasing=T))), predNames) })
+            best = by(data$train[[i]], trainclusters, bestfun)
             if(is.function(combinator)) { # only do this if we need it
                 trainpredictions[,j] = sapply(predict(model, trf$features),
                 function(x) {
                     as.character(if(is.na(x)) {
-                        names(sort(table(data$train[[i]]$best), decreasing=T))[1]
+                        innerbest(data$train[[i]]);
                     } else {
                         best[[which(names(best)==x)]][1,1]
                     })
@@ -39,14 +54,15 @@ function(clusterer=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
             for(k in 1:length(preds)) {
                 x = preds[k]
                 if(is.na(x)) {
-                    ensemblepredictions[[j]][[k]] = setNames(data.frame(as.table(sort(table(data$train[[k]]$best), decreasing=T))), predNames)
+                    ensemblepredictions[[j]][[k]] = bestfun(data$train[[k]])
                 } else {
                     ensemblepredictions[[j]][[k]] = best[[which(names(best)==x)]]
                 }
             }
         }
         if(is.function(combinator)) {
-            combinedmodel = combinator(data$train[[i]]$best~., data=data.frame(trainpredictions))
+            trainBests = breakBestTies(data, i)
+            combinedmodel = combinator(trainBests~., data=data.frame(trainpredictions))
             featureData = matrix(nrow=nrow(tsf$features), ncol=length(clusterer))
             for(k in 1:nrow(featureData)) {
                 for(j in 1:ncol(featureData)) {
@@ -69,13 +85,13 @@ function(clusterer=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
     models = lapply(1:length(clusterer), function(i) {
         model = clusterer[[i]](fs$features)
         clusters = predict(model)
-        best = by(data$data, clusters, function(x) { setNames(data.frame(as.table(sort(table(x$best), decreasing=T))), predNames) })
+        best = by(data$data, clusters, bestfun)
         return(function(newdata) {
             preds = predict(model, newdata)
             lapply(1:length(preds), function(k) {
                 x = preds[k]
                 if(is.na(x)) {
-                    setNames(data.frame(as.table(sort(table(data$train[[k]]$best), decreasing=T))), predNames)
+                    bestfun(data$train[[k]])
                 } else {
                     best[[which(names(best)==x)]]
                 }
@@ -87,7 +103,8 @@ function(clusterer=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
         for(j in 1:length(clusterer)) {
             trainpredictions[,j] = sapply(models[[j]](fs$features), function(x) { as.character(x[1,1]) })
         }
-        combinedmodel = combinator(data$data$best~., data=data.frame(trainpredictions))
+        totalBests = breakBestTies(data)
+        combinedmodel = combinator(totalBests~., data=data.frame(trainpredictions))
     }
 
     return(list(predictions=predictions, models=models, predictor=function(x) {

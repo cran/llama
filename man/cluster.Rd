@@ -9,6 +9,7 @@ of the problem.
 }
 \usage{
 cluster(clusterer = NULL, data = NULL,
+    bestBy = "performance",
     pre = function(x, y=NULL) { list(features=x) })
 }
 \arguments{
@@ -23,6 +24,10 @@ cluster(clusterer = NULL, data = NULL,
   the data to use with training and test sets. The structure returned by
   \code{trainTest} or \code{cvFolds}.
 }
+  \item{bestBy}{
+  the criteria by which to determine the best algorithm in a cluster. Can be one
+  of "performance", "count", "successes". Optional. Defaults to "performance".
+}
   \item{pre}{
   a function to preprocess the data. Currently only \code{normalize}.
   Optional. Does nothing by default.
@@ -31,9 +36,13 @@ cluster(clusterer = NULL, data = NULL,
 \details{
 \code{cluster} takes \code{data} and processes it using \code{pre} (if
 supplied). \code{clusterer} is called to cluster the data. For each cluster, the
-best algorithm is identified as the one with the best overall performance on the
-problems in that cluster. The learned model is used to cluster the test data and
-predict algorithms accordingly.
+best algorithm is identified according to the criteria given in \code{bestBy}.
+If \code{bestBy} is "performance", the best algorithm is the one with the best
+overall performance across all instances in the cluster. If it is "count", the
+best algorithm is the one that has the best performance most often. If it is
+"successes", the best algorithm is the one with the highest number of successes
+across all instances in the cluster. The learned model is used to cluster the
+test data and predict algorithms accordingly.
 
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
@@ -52,11 +61,15 @@ used to combine the ensemble predictions instead of majority voting.
  \item{predictions}{a list of lists of data frames with the predictions for each
  test set. Each data frame has columns \code{algorithm} and \code{score} and is
  sorted according to preference, with the most preferred algorithm first. The
- score corresponds to the number of training instances that the respective
- algorithm was the best on. If more than one clustering algorithm is used, the
- score corresponds to the sum of all instances across all clusterers. If
- stacking is used, each data frame contains simply the best algorithm with a
- score of 1.}
+ score corresponds to the cumulative performance value for the respective
+ algorithm in the cluster the instance was assigned to. That is, if
+ \code{bestBy} is "performance", it is the sum of the performance over all
+ training instances. If \code{bestBy} is "count", the score corresponds to the
+ number of training instances that the respective algorithm was the best on, and
+ if it is "successes" it corresponds to the number of training instances solved.
+ If more than one clustering algorithm is used, the score corresponds to the sum
+ of all instances across all clusterers. If stacking is used, each data frame
+ contains simply the best algorithm with a score of 1.}
  \item{predictor}{a function that encapsulates the model learned on the
  \emph{entire} data set. Can be called with data for the same features with the
  same feature names as the training data to obtain predictions.}
@@ -79,9 +92,13 @@ trainTest = cvFolds(satsolvers)
 
 res = cluster(clusterer=XMeans, data=trainTest, pre=normalize)
 # the total number of successes
-sum(unlist(successes(trainTest, res$predictions)))
+sum(successes(trainTest, res))
 # predictions on the entire data set
 res$predictor(subset(satsolvers$data, TRUE, satsolvers$features))
+
+# determine best by number of successes
+res = cluster(clusterer=XMeans, data=trainTest, bestBy="successes", pre=normalize)
+sum(successes(trainTest, res))
 
 library(flexclust)
 res = cluster(clusterer=function(x) { kcca(x, length(satsolvers$performance)) },

@@ -8,6 +8,17 @@ test_that("trainTest splits", {
     expect_equal(dim(dtt$test[[1]]), c(4, 2))
 })
 
+test_that("trainTest splits with best list", {
+    d = list(data=data.frame(a=rep.int(0, 10)))
+    d$data$best = list(0, 0, 0, c(0, 1), 0, 0, 0, 0, 0, 0)
+
+    dtt = trainTest(d)
+    expect_equal(length(dtt$train), 1)
+    expect_equal(length(dtt$test), 1)
+    expect_equal(dim(dtt$train[[1]]), c(6, 2))
+    expect_equal(dim(dtt$test[[1]]), c(4, 2))
+})
+
 test_that("trainTest allows to specify split ratio", {
     d = list(data=data.frame(a=rep.int(0, 10), best=rep.int(0, 10)))
 
@@ -16,6 +27,16 @@ test_that("trainTest allows to specify split ratio", {
     expect_equal(length(dtt$test), 1)
     expect_equal(dim(dtt$train[[1]]), c(1, 2))
     expect_equal(dim(dtt$test[[1]]), c(9, 2))
+})
+
+test_that("trainTest allows to not stratify", {
+    d = list(data=data.frame(a=rep.int(0, 10), best=rep.int(0, 10)))
+
+    dtt = trainTest(d, stratify=F)
+    expect_equal(length(dtt$train), 1)
+    expect_equal(length(dtt$test), 1)
+    expect_equal(dim(dtt$train[[1]]), c(6, 2))
+    expect_equal(dim(dtt$test[[1]]), c(4, 2))
 })
 
 test_that("trainTest stratifies", {
