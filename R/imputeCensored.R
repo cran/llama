@@ -1,5 +1,5 @@
 imputeCensored <-
-function(data=NULL, estimator=lm, epsilon=0.1, maxit=1000) {
+function(data=NULL, estimator=makeLearner("regr.lm"), epsilon=0.1, maxit=1000) {
     if(is.null(data)) {
         stop("No data given!")
     }
@@ -22,14 +22,16 @@ function(data=NULL, estimator=lm, epsilon=0.1, maxit=1000) {
         if(!all(data$data[[s]])) {
             haveind = (1:nrow(data$data))[data$data[[s]]]
             wantind = (1:nrow(data$data))[!data$data[[s]]]
-            model = estimator(data$data[haveind,][[p]]~., data=subset(data$data[haveind,], T, data$features))
-            data$data[wantind,][[p]] = predict(model, subset(data$data[wantind,], T, data$features))
+            task = makeRegrTask(id="imputation", target="target", data=cbind(data.frame(target=data$data[haveind,][[p]]), subset(data$data[haveind,], T, data$features)))
+            model = train(estimator, task=task)
+            data$data[wantind,][[p]] = predict(model, newdata=subset(data$data[wantind,], T, data$features))$data$response
 
             diff = Inf
             it = 1
             while(diff > epsilon) {
-                model = estimator(data$data[[p]]~., data=subset(data$data, T, data$features))
-                preds = predict(model, subset(data$data[wantind,], T, data$features))
+                task = makeRegrTask(id="imputation", target="target", data=cbind(data.frame(target=data$data[[p]]), subset(data$data, T, data$features)))
+                model = train(estimator, task=task)
+                preds = predict(model, newdata=subset(data$data[wantind,], T, data$features))$data$response
                 diff = max(abs(preds - data$data[wantind,][[p]]))
                 data$data[wantind,][[p]] = preds
                 it = it + 1

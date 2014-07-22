@@ -6,7 +6,7 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
     if(is.null(data) || length(data$train) == 0 || length(data$test) == 0) {
         stop("Need data with train/test split!")
     }
-    if(!is.list(clusterer)) { clusterer = list(clusterer) }
+    if(is.object(clusterer)) { clusterer = list(clusterer) }
     combinator = "majority"
     if(!is.null(clusterer$.combine)) {
         combinator = clusterer$.combine
@@ -36,20 +36,21 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
         trainpredictions = matrix(nrow=nrow(trf$features), ncol=length(clusterer))
         ensemblepredictions = list()
         for(j in 1:length(clusterer)) {
-            model = clusterer[[j]](trf$features)
-            trainclusters = predict(model)
+            task = makeClusterTask(id="clustering", data=trf$features)
+            model = train(clusterer[[j]], task=task)
+            trainclusters = predict(model, newdata=trf$features)$data$response
             best = by(data$train[[i]], trainclusters, bestfun)
-            if(is.function(combinator)) { # only do this if we need it
-                trainpredictions[,j] = sapply(predict(model, trf$features),
+            if(inherits(combinator, "Learner")) { # only do this if we need it
+                trainpredictions[,j] = sapply(predict(model, newdata=trf$features)$data$response,
                 function(x) {
-                    as.character(if(is.na(x)) {
+                    if(is.na(x)) {
                         innerbest(data$train[[i]]);
                     } else {
                         best[[which(names(best)==x)]][1,1]
-                    })
+                    }
                 })
             }
-            preds = predict(model, tsf$features)
+            preds = predict(model, newdata=tsf$features)$data$response
             ensemblepredictions[[j]] = list()
             for(k in 1:length(preds)) {
                 x = preds[k]
@@ -60,16 +61,16 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
                 }
             }
         }
-        if(is.function(combinator)) {
-            trainBests = breakBestTies(data, i)
-            combinedmodel = combinator(trainBests~., data=data.frame(trainpredictions))
+        if(inherits(combinator, "Learner")) {
+            trainBests = data.frame(target=factor(breakBestTies(data, i), levels=data$performance))
+            combinedmodel = train(combinator, task=makeClassifTask(id="cluster", target="target", data=cbind(trainBests, trf$features, data.frame(trainpredictions))))
             featureData = matrix(nrow=nrow(tsf$features), ncol=length(clusterer))
             for(k in 1:nrow(featureData)) {
                 for(j in 1:ncol(featureData)) {
-                    featureData[k,j] = as.character(ensemblepredictions[[j]][[k]][1,1])
+                    featureData[k,j] = ensemblepredictions[[j]][[k]][1,1]
                 }
             }
-            preds = as.character(predict(combinedmodel, data.frame(featureData)))
+            preds = predict(combinedmodel, newdata=cbind(tsf$features, data.frame(featureData)))$data$response
             combinedpredictions = lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) })
         } else {
             combinedpredictions = Reduce(function(x, y) {
@@ -83,11 +84,12 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
 
     fs = pre(subset(data$data, T, data$features))
     models = lapply(1:length(clusterer), function(i) {
-        model = clusterer[[i]](fs$features)
-        clusters = predict(model)
+        task = makeClusterTask(id="clustering", data=fs$features)
+        model = train(clusterer[[i]], task=task)
+        clusters = predict(model, newdata=fs$features)$data$response
         best = by(data$data, clusters, bestfun)
         return(function(newdata) {
-            preds = predict(model, newdata)
+            preds = predict(model, newdata=newdata)$data$response
             lapply(1:length(preds), function(k) {
                 x = preds[k]
                 if(is.na(x)) {
@@ -98,13 +100,13 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
             })
         })
     })
-    if(is.function(combinator)) {
+    if(inherits(combinator, "Learner")) {
         trainpredictions = matrix(nrow=nrow(fs$features), ncol=length(clusterer))
         for(j in 1:length(clusterer)) {
-            trainpredictions[,j] = sapply(models[[j]](fs$features), function(x) { as.character(x[1,1]) })
+            trainpredictions[,j] = sapply(models[[j]](fs$features), function(x) { x[1,1] })
         }
-        totalBests = breakBestTies(data)
-        combinedmodel = combinator(totalBests~., data=data.frame(trainpredictions))
+        totalBests = data.frame(target=factor(breakBestTies(data), levels=data$performance))
+        combinedmodel = train(combinator, task=makeClassifTask(id="cluster", target="target", data=cbind(totalBests, fs$features, data.frame(trainpredictions))))
     }
 
     return(list(predictions=predictions, models=models, predictor=function(x) {
@@ -113,14 +115,14 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
         for(j in 1:length(clusterer)) {
             ensemblepredictions[[j]] = models[[j]](tsf$features)
         }
-        if(is.function(combinator)) {
+        if(inherits(combinator, "Learner")) {
             featureData = matrix(nrow=nrow(tsf$features), ncol=length(clusterer))
             for(k in 1:nrow(featureData)) {
                 for(j in 1:ncol(featureData)) {
-                    featureData[k,j] = as.character(ensemblepredictions[[j]][[k]][1,1])
+                    featureData[k,j] = ensemblepredictions[[j]][[k]][1,1]
                 }
             }
-            preds = as.character(predict(combinedmodel, data.frame(featureData)))
+            preds = predict(combinedmodel, newdata=cbind(tsf$features, data.frame(featureData)))$data$response
             combinedpredictions = lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) })
         } else {
             combinedpredictions = Reduce(function(x, y) {

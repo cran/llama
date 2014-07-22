@@ -13,9 +13,7 @@ classify(classifier = NULL, data = NULL,
 }
 \arguments{
   \item{classifier}{
-  the classifier function to use. Must accept a formula of the values to predict
-  and a data frame with features. Return value should be a structure that can be
-  given to \code{predict} along with new data. See examples.
+  the mlr classifier to use. See examples.
 
   The argument can also be a list of such classifiers.
 }
@@ -37,6 +35,10 @@ set(s).
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
 
+If the given classifier supports case weights, the performance difference
+between the best and the worst algorithm is passed as a weight for each
+instance.
+
 If a list of classifiers is supplied in \code{classifier}, ensemble
 classification is performed. That is, the models are trained and used to make
 predictions independently. For each instance, the final prediction is determined
@@ -44,7 +46,8 @@ by majority vote of the predictions of the individual models -- the class that
 occurs most often is chosen. If the list given as \code{classifier} contains a
 member \code{.combine} that is a function, it is assumed to be a classifier with
 the same properties as the other ones and will be used to combine the ensemble
-predictions instead of majority voting.
+predictions instead of majority voting. This classifier is passed the original
+features and the predictions of the classifiers in the ensemble.
 }
 \value{
  \item{predictions}{a list of lists of data frames with the predictions for each
@@ -64,7 +67,8 @@ predictions instead of majority voting.
 Lars Kotthoff
 }
 \seealso{
-\code{\link{classifyPairs}}, \code{\link{cluster}}, \code{\link{regression}}
+\code{\link{classifyPairs}}, \code{\link{cluster}}, \code{\link{regression}},
+\code{\link{regressionPairs}}
 }
 \references{
 Kotthoff, L., Miguel, I., Nightingale, P. (2010)
@@ -74,23 +78,28 @@ Ensemble Classification for Constraint Solver Configuration.
 \examples{
 \dontrun{
 data(satsolvers)
-trainTest = cvFolds(satsolvers)
+folds = cvFolds(satsolvers)
 
-library(RWeka)
-res = classify(classifier=J48, data=trainTest)
+res = classify(classifier=makeLearner("classif.J48"), data=folds)
 # the total number of successes
-sum(successes(trainTest, res))
+sum(successes(folds, res))
 # predictions on the entire data set
 res$predictor(subset(satsolvers$data, TRUE, satsolvers$features))
 
-library(e1071)
-res = classify(classifier=svm, data=trainTest)
+res = classify(classifier=makeLearner("classif.svm"), data=folds)
 
 # ensemble classification
-rese = classify(classifier=list(J48, IBk, svm), data=trainTest)
+rese = classify(classifier=list(makeLearner("classif.J48"),
+                                makeLearner("classif.IBk"),
+                                makeLearner("classif.svm")),
+                data=folds)
 
 # ensemble classification with a classifier to combine predictions
-rese = classify(classifier=list(J48, IBk, svm, .combine=J48), data=trainTest)
+rese = classify(classifier=list(makeLearner("classif.J48"),
+                                makeLearner("classif.IBk"),
+                                makeLearner("classif.svm"),
+                                .combine=makeLearner("classif.J48")),
+                data=folds)
 }
 }
 \keyword{ ~models }

@@ -14,9 +14,7 @@ regression(regressor = NULL, data = NULL,
 }
 \arguments{
   \item{regressor}{
-  the regression function to use. Must accept a formula of the values to predict
-  and a data frame with features. Return value should be a structure that can be
-  given to \code{predict} along with new data. See examples.
+  the mlr regressor to use. See examples.
 }
   \item{data}{
   the data to use with training and test sets. The structure returned by
@@ -48,12 +46,14 @@ to be minimized or not, as specified when creating the data structure though
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
 
-If \code{combine} is not null, it is assumed to be a classifier with the same
-properties as classifiers given to \code{classify} and will be used to learn a
-model to predict the best algorithm given the performance predictions for the
-individual algorithms. Optionally, \code{expand} can be used to supply a
-function that will modify the features given to the classifier, e.g. augment the
-performance predictions with the pairwise differences (see examples).
+If \code{combine} is not null, it is assumed to be an mlr classifier and will be
+used to learn a model to predict the best algorithm given the original features
+and the performance predictions for the individual algorithms. If this
+classifier supports weights, they will be passed as the difference between the
+best and the worst algorithm. Optionally, \code{expand} can be used to supply a
+function that will modify the predictions before giving them to the classifier,
+e.g. augment the performance predictions with the pairwise differences (see
+examples).
 }
 \value{
  \item{predictions}{a list of lists of data frames with the predictions for each
@@ -73,7 +73,8 @@ performance predictions with the pairwise differences (see examples).
 Lars Kotthoff
 }
 \seealso{
-\code{\link{classify}}, \code{\link{classifyPairs}}, \code{\link{cluster}}
+\code{\link{classify}}, \code{\link{classifyPairs}}, \code{\link{cluster}},
+\code{\link{regressionPairs}}
 }
 \references{
 Kotthoff, L. (2012)
@@ -83,24 +84,27 @@ Hybrid Regression-Classification Models for Algorithm Selection.
 \examples{
 \dontrun{
 data(satsolvers)
-trainTest = cvFolds(satsolvers)
+folds = cvFolds(satsolvers)
 
-res = regression(regressor=lm, data=trainTest)
+res = regression(regressor=makeLearner("regr.lm"), data=folds)
 # the total number of successes
-sum(successes(trainTest, res))
+sum(successes(folds, res))
 # predictions on the entire data set
 res$predictor(subset(satsolvers$data, TRUE, satsolvers$features))
 
-library(RWeka)
-res = regression(regressor=LinearRegression, data=trainTest)
+res = regression(regressor=makeLearner("regr.ksvm"), data=folds)
 
 # combine performance predictions using classifier
-ress = regression(regressor=LinearRegression, data=trainTest, combine=J48)
+ress = regression(regressor=makeLearner("regr.ksvm"),
+                  data=folds,
+                  combine=makeLearner("classif.J48"))
 
 # add pairwise differences to performance predictions before running classifier
-ress = regression(regressor=LinearRegression, data=trainTest, combine=J48,
-    expand=function(x) { cbind(x, combn(c(1:ncol(x)), 2,
-        function(y) { abs(x[,y[1]] - x[,y[2]]) })) })
+ress = regression(regressor=makeLearner("regr.ksvm"),
+                  data=folds,
+                  combine=makeLearner("classif.J48"),
+                  expand=function(x) { cbind(x, combn(c(1:ncol(x)), 2,
+                         function(y) { abs(x[,y[1]] - x[,y[2]]) })) })
 }
 }
 \keyword{ ~regression }

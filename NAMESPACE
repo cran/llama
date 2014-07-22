@@ -11,6 +11,7 @@ export(
     normalize,
     parscores,
     regression,
+    regressionPairs,
     singleBest,
     singleBestByCount,
     singleBestByPar,
@@ -22,3 +23,4 @@ export(
 importFrom(plyr, ddply)
 importFrom(rJava, J, .jpackage, .jarray)
 importFrom(parallelMap, parallelMap)
+import(mlr)

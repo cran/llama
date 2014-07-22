@@ -45,19 +45,17 @@ Lars Kotthoff
 }
 \examples{
 \dontrun{
-library(RWeka)
-
 data(satsolvers)
-trainTest = cvFolds(satsolvers)
+folds = cvFolds(satsolvers)
 
-model = classify(classifier=J48, data=trainTest)
-sum(parscores(trainTest, model))
+model = classify(classifier=makeLearner("classif.J48"), data=folds)
+sum(parscores(folds, model))
 
 # use factor of 5 instead of 10.
-sum(parscores(trainTest, model, 5))
+sum(parscores(folds, model, 5))
 
 # explicitly specify timeout.
-sum(parscores(trainTest, model, timeout = 3600))
+sum(parscores(folds, model, timeout = 3600))
 }
 }
 \keyword{ ~models }

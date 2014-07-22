@@ -14,9 +14,7 @@ classifyPairs(classifier = NULL, data = NULL,
 }
 \arguments{
   \item{classifier}{
-  the classifier function to use. Must accept a formula of the values to predict
-  and a data frame with features. Return value should be a structure that can be
-  given to \code{predict} along with new data. See examples.
+  the mlr classifier to use. See examples.
 }
   \item{data}{
   the data to use with training and test sets. The structure returned by
@@ -36,9 +34,10 @@ classifyPairs(classifier = NULL, data = NULL,
 \code{classifyPairs} takes the training and test sets in \code{data} and
 processes it using \code{pre} (if supplied). \code{classifier} is called to
 induce a classifier for each pair of algorithms to predict which one is better.
-The predictions for pairs of algorithms are aggregated to determine the best
-overall algorithm using \code{combinator} (if supplied). It \code{combinator} is
-not supplied, the best overall algorithm is determined by majority vote.
+If \code{combinator} is not supplied, the best overall algorithm is determined
+by majority vote. If it is supplied, it is assumed to be a classifier with the
+same properties as the other one. This classifier is passed the original
+features and the predictions for each pair of algorithms.
 
 Which algorithm is better of a pair is determined by comparing their performance
 scores. Whether a lower performance number is better or not is determined by
@@ -46,6 +45,10 @@ what was specified when the LLAMA data frame was created.
 
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
+
+If the given classifier supports case weights, the performance difference
+between the best and the worst algorithm is passed as a weight for each
+instance.
 
 Training this model can take a very long time. Given \code{n} algorithms,
 \code{choose(n, 2)} models are trained and evaluated. This is significantly
@@ -70,7 +73,8 @@ algorithm.
 Lars Kotthoff
 }
 \seealso{
-\code{\link{classify}}, \code{\link{cluster}}, \code{\link{regression}}
+\code{\link{classify}}, \code{\link{cluster}}, \code{\link{regression}},
+\code{\link{regressionPairs}}
 }
 \references{
 Xu, L., Hutter, F., Hoos, H. H., Leyton-Brown, K. (2011)
@@ -81,17 +85,18 @@ Problems with Combinatorial Explosion}, 16--30.
 \examples{
 \dontrun{
 data(satsolvers)
-trainTest = cvFolds(satsolvers)
+folds = cvFolds(satsolvers)
 
-library(RWeka)
-res = classifyPairs(classifier=J48, data=trainTest)
+res = classifyPairs(classifier=makeLearner("classif.J48"), data=folds)
 # the total number of successes
-sum(successes(trainTest, res))
+sum(successes(folds, res))
 # predictions on the entire data set
 res$predictor(subset(satsolvers$data, TRUE, satsolvers$features))
 
 # combine predictions using J48 induced classifier instead of majority vote
-res = classifyPairs(classifier=J48, data=trainTest, combinator=J48)
+res = classifyPairs(classifier=makeLearner("classif.J48"),
+                    data=folds,
+                    combinator=makeLearner("classif.J48"))
 }
 }
 \keyword{ ~models }

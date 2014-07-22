@@ -8,15 +8,13 @@ Impute the performance values that are censored, i.e. for which the respective
 algorithm was not successful.
 }
 \usage{
-imputeCensored(data = NULL, estimator = lm, epsilon = 0.1, maxit = 1000)
+imputeCensored(data = NULL, estimator = makeLearner("regr.lm"),
+    epsilon = 0.1, maxit = 1000)
 }
 \arguments{
   \item{data}{the data to check for censored values to impute. The structure
   returned by \code{input}.}
-  \item{estimator}{the regression function to use to impute the censored values.
-  Must accept a formula of the values to predict and a data frame with features.
-  Return value should be a structure that can be given to \code{predict} along
-  with new data. Default "lm".}
+  \item{estimator}{the mlr regressor to use to impute the censored values.}
   \item{epsilon}{the convergence criterion. Default 0.1.}
   \item{maxit}{the maximum number of iterations. Default 1000.}
 }

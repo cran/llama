@@ -14,11 +14,9 @@ cluster(clusterer = NULL, data = NULL,
 }
 \arguments{
   \item{clusterer}{
-  the clustering function to use. Must accept a data frame with features. Return
-  value should be a structure that can be given to \code{predict} along with new
-  data. See examples.
+  the mlr clustering function to use. See examples.
 
-  The argument can also be a list of such clusters.
+  The argument can also be a list of such functions.
 }
   \item{data}{
   the data to use with training and test sets. The structure returned by
@@ -53,8 +51,10 @@ predictions independently. For each instance, the final prediction is determined
 by majority vote of the predictions of the individual models -- the class that
 occurs most often is chosen. If the list given as \code{clusterer} contains a
 member \code{.combine} that is a function, it is assumed to be a classifier with
-the same properties as classifiers given to \code{classify} and will be
-used to combine the ensemble predictions instead of majority voting.
+the same properties as classifiers given to \code{classify} and will be used to
+combine the ensemble predictions instead of majority voting. This classifier is
+passed the original features and the predictions of the classifiers in the
+ensemble.
 
 }
 \value{
@@ -81,38 +81,34 @@ used to combine the ensemble predictions instead of majority voting.
 Lars Kotthoff
 }
 \seealso{
-\code{\link{classify}}, \code{\link{classifyPairs}}, \code{\link{regression}}
+\code{\link{classify}}, \code{\link{classifyPairs}}, \code{\link{regression}},
+\code{\link{regressionPairs}}
 }
 \examples{
 \dontrun{
-library(RWeka)
-
 data(satsolvers)
-trainTest = cvFolds(satsolvers)
+folds = cvFolds(satsolvers)
 
-res = cluster(clusterer=XMeans, data=trainTest, pre=normalize)
+res = cluster(clusterer=makeLearner("cluster.XMeans"), data=folds, pre=normalize)
 # the total number of successes
-sum(successes(trainTest, res))
+sum(successes(folds, res))
 # predictions on the entire data set
 res$predictor(subset(satsolvers$data, TRUE, satsolvers$features))
 
 # determine best by number of successes
-res = cluster(clusterer=XMeans, data=trainTest, bestBy="successes", pre=normalize)
-sum(successes(trainTest, res))
-
-library(flexclust)
-res = cluster(clusterer=function(x) { kcca(x, length(satsolvers$performance)) },
-    data=trainTest, pre=normalize)
+res = cluster(clusterer=makeLearner("cluster.XMeans"), data=folds,
+    bestBy="successes", pre=normalize)
+sum(successes(folds, res))
 
 # ensemble clustering
-rese = cluster(clusterer=list(XMeans, make_Weka_clusterer("weka/clusterers/EM"),
-    function(x) { kcca(x, length(satsolvers$performance)) }),
-    data=trainTest, pre=normalize)
+rese = cluster(clusterer=list(makeLearner("cluster.XMeans"),
+    makeLearner("cluster.SimpleKMeans"), makeLearner("cluster.EM")),
+    data=folds, pre=normalize)
 
 # ensemble clustering with a classifier to combine predictions
-rese = cluster(clusterer=list(XMeans, make_Weka_clusterer("weka/clusterers/EM"),
-    function(x) { kcca(x, length(satsolvers$performance)) }, .combine=J48),
-    data=trainTest, pre=normalize)
+rese = cluster(clusterer=list(makeLearner("cluster.XMeans"),
+    makeLearner("cluster.SimpleKMeans"), makeLearner("cluster.EM"),
+    .combine=J48), data=folds, pre=normalize)
 }
 }
 \keyword{ ~cluster }

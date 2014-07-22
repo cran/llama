@@ -44,13 +44,11 @@ Lars Kotthoff
 }
 \examples{
 \dontrun{
-library(RWeka)
-
 data(satsolvers)
-trainTest = cvFolds(satsolvers)
+folds = cvFolds(satsolvers)
 
-model = classify(classifier=J48, data=trainTest)
-sum(successes(trainTest, model))
+model = classify(classifier=makeLearner("classif.J48"), data=folds)
+sum(successes(folds, model))
 }
 }
 \keyword{ ~models }

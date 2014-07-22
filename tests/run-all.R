@@ -1,3 +1,4 @@
 library(testthat)
+library(ParamHelpers)
 
-test_package("llama")
+test_check("llama")
