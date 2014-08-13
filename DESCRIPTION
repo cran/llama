@@ -1,8 +1,8 @@
 Package: llama
 Type: Package
 Title: Leveraging Learning to Automatically Manage Algorithms
-Version: 0.7
-Date: 2014-07-22
+Version: 0.7.1
+Date: 2014-08-13
 Author: Lars Kotthoff [aut,cre],
     Bernd Bischl [aut],
     Barry Hurley [ctb],
@@ -14,7 +14,7 @@ Imports: plyr, rJava, parallelMap
 Suggests: FSelector, testthat, ParamHelpers
 License: BSD_3_clause + file LICENSE
 URL: https://bitbucket.org/lkotthoff/llama
-Packaged: 2014-07-22 09:36:06 UTC; larsko
+Packaged: 2014-08-13 11:28:03 UTC; larsko
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2014-07-22 14:23:23
+Date/Publication: 2014-08-13 13:54:55

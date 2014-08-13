@@ -72,3 +72,14 @@ test_that("successes takes feature cost groups into account", {
     expect_equal(sum(successes(e, modela, timeout=1.5)), 0)
     expect_equal(sum(successes(e, modela, timeout=2.5)), 10)
 })
+
+test_that("successes works for test splits", {
+    fold = data.frame(a=rep.int(1, 5), b=rep.int(0, 5),
+        d=rep.int(F, 5), e=rep.int(T, 5))
+    d = list(data=rbind(fold, fold), test=list(fold), performance=c("a", "b"), success=c("d", "e"))
+    model = function(data) {
+        lapply(1:nrow(data$data), function(i) { data.frame(algorithm="b", score=1) })
+    }
+
+    expect_equal(sum(successes(d, model)), 5)
+})

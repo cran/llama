@@ -31,3 +31,14 @@ test_that("misclassificationPenalties allows to maximise", {
     expect_equal(sum(misclassificationPenalties(d, modela)), 0)
     expect_equal(sum(misclassificationPenalties(d, modelb)), 10)
 })
+
+test_that("misclassificationPenalties works for test splits", {
+    fold = data.frame(a=rep.int(1, 5), b=rep.int(0, 5),
+        d=rep.int(F, 5), e=rep.int(T, 5))
+    d = list(data=rbind(fold, fold), test=list(fold), performance=c("a", "b"), success=c("d", "e"), minimize=T)
+    model = function(data) {
+        lapply(1:nrow(data$data), function(i) { data.frame(algorithm="a", score=1) })
+    }
+
+    expect_equal(sum(misclassificationPenalties(d, model)), 5)
+})

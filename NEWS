@@ -1,3 +1,9 @@
+llama_0.7.1:
+- allow vbs/singleBest to operate on test splits to simplify the interface
+- corrected the implementation of contributions() to handle minimisation and
+  maximisation of performance values correctly
+
+
 llama_0.7:
 - add regressionPairs model, which predicts the performance difference for each
   pair of algorithms and makes decisions based on that

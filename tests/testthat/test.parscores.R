@@ -99,3 +99,14 @@ test_that("parscores takes feature cost groups into account", {
     expect_equal(sum(parscores(e, modela, timeout=1.5)), 150)
     expect_equal(sum(parscores(e, modela, timeout=2.5)), 20)
 })
+
+test_that("parscores works for test splits", {
+    fold = data.frame(a=rep.int(1, 5), b=rep.int(0, 5),
+        d=rep.int(F, 5), e=rep.int(T, 5))
+    d = list(data=rbind(fold, fold), test=list(fold), performance=c("a", "b"), success=c("d", "e"))
+    model = function(data) {
+        lapply(1:nrow(data$data), function(i) { data.frame(algorithm="a", score=1) })
+    }
+
+    expect_equal(sum(parscores(d, model)), 50)
+})

@@ -21,10 +21,8 @@ for a specific algorithm is computed as the "value" of the portfolio with the
 algorithm minus the "value" without the algorithm. This is done over all
 possible portfolio compositions.
 
-This function is currently only implemented for cases where the objective is to
-minimise the performance value, which is the case for runtime for example. The
-function will still work in other cases, but the reported values will be
-incorrect.
+It is automatically determined whether the performance value is to be minimised
+or maximised.
 }
 \value{
 A table listing the Shapley values for each algorithm in the portfolio.

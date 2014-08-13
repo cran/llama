@@ -5,10 +5,9 @@ function(data=NULL) {
     }
 
     times = .jarray(as.matrix(subset(data$data, T, data$performance)), dispatch=T)
-    #coalitionValues = .jcall("shapleyComputation/CoalitionValueCalculator", "[D", "computeCoalitionValuesBasedOnMinimumTime", times)
-    coalitionValues = J("shapleyComputation/CoalitionValueCalculator")$computeCoalitionValuesBasedOnMinimumTime(times)
+    coalitionValues = J("shapleyComputation/CoalitionValueCalculator")$computeCoalitionValues(times, data$minimize)
     J("shapleyComputation/CoalitionValueCalculator")$deductFromNonEmptyCoalitionsTheMaxSingletonValue(coalitionValues)
-    contributions = J("shapleyComputation/ShapleyComputation")$computeShapleyValues(coalitionValues)
+    contributions = J("shapleyComputation/ShapleyComputation")$computeShapleyValues(coalitionValues, data$minimize)
     names(contributions) = data$performance
 
     return(contributions)

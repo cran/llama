@@ -7,10 +7,13 @@ function(data=NULL, model=NULL) {
     if(is.function(model)) {
         # vbs or a model predictor
         if(length(data$test) > 0) {
-            # we've passed in splits
-            stop("The model you've passed in only works on the full data.")
+            predictions = lapply(data$test, function(x) {
+                data$data = x
+                model(data)
+            })
+        } else {
+            predictions = model(data)
         }
-        predictions = model(data)
     } else {
         # it's a model
         predictions = model$predictions
