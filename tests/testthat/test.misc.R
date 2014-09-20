@@ -30,6 +30,14 @@ test_that("single best raises error without data", {
     expect_error(singleBest(), "Need data to determine single best!")
 })
 
+test_that("virtual best works with NAs", {
+    d = list(data=list(best=c(NA)))
+
+    preds = vbs(d)
+    expect_equal(length(preds), 1)
+    expect_equal(preds[[1]], data.frame(algorithm=NA, score=0))
+})
+
 test_that("single best returns the single best", {
     fold = data.frame(a=rep.int(1, 10), b=rep.int(0, 10), best=rep.int("a", 10))
     d = list(data=fold, performance=c("a", "b"), minimize=T)

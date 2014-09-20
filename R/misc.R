@@ -4,7 +4,13 @@ function(data=NULL) {
     if(is.null(data)) {
         stop("Need data to determine virtual best!")
     }
-    return(lapply(data$data$best, function(l) { setNames(data.frame(as.table(sort(table(l), decreasing=T))), predNames) }))
+    return(lapply(data$data$best, function(l) {
+        if(length(l) == 1 && is.na(l)) {
+            setNames(data.frame(foo = NA, bar = 0), predNames)
+        } else {
+            setNames(data.frame(as.table(sort(table(l), decreasing=T))), predNames)
+        }
+    }))
 }
 
 singleBestByCount <-

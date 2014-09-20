@@ -42,3 +42,14 @@ test_that("misclassificationPenalties works for test splits", {
 
     expect_equal(sum(misclassificationPenalties(d, model)), 5)
 })
+
+test_that("misclassificationPenalties works with NA predictions", {
+    fold = data.frame(a=rep.int(1, 5), b=rep.int(0, 5),
+        d=rep.int(F, 5), e=rep.int(T, 5))
+    d = list(data=rbind(fold, fold), test=list(fold, fold), performance=c("a", "b"), success=c("d", "e"), minimize=T)
+    nas = rep.int(list(data.frame(algorithm=NA, score=0)), 5)
+    as = rep.int(list(data.frame(algorithm="a", score=1)), 5)
+    model = list(predictions=list(nas, as))
+
+    expect_equal(sum(misclassificationPenalties(d, model), na.rm=T), 5)
+})

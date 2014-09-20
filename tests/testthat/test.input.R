@@ -44,13 +44,46 @@ test_that("input determines best and reports all ties", {
 test_that("input reads features, performances and successes", {
     a = data.frame(a=c(1:5), b=rep.int(1, 5))
     b = data.frame(a=c(1:5), c=rep.int(1, 5))
+    c = data.frame(a=c(1:5), c=rep.int(T, 5))
 
-    data = input(a, b, b)
+    data = input(a, b, c)
     expect_equal(data$features, c("b"))
     expect_equal(data$performance, c("c"))
     expect_equal(data$success, c("c_success"))
     expect_equal(dim(data$data), c(5, 5))
     expect_equal(data$data$best, factor(rep.int("c", 5)))
+})
+
+test_that("input takes success into account when determining best", {
+    a = data.frame(a=c(1:5), b=rep.int(1, 5))
+    b = data.frame(a=c(1:5), c=rep.int(1, 5), d=rep.int(0, 5))
+    c = data.frame(a=c(1:5), c=rep.int(T, 5), d=rep.int(F, 5))
+
+    data = input(a, b, c)
+    expect_equal(data$features, c("b"))
+    expect_equal(data$performance, c("c", "d"))
+    expect_equal(data$success, c("c_success", "d_success"))
+    expect_equal(dim(data$data), c(5, 7))
+    expect_equal(data$data$best, factor(rep.int("c", 5)))
+
+    c = data.frame(a=c(1:5), c=rep.int(F, 5), d=rep.int(F, 5))
+    data = input(a, b, c)
+    expect_equal(data$data$best, rep.int(NA, 5))
+
+    c = data.frame(a=c(1:5), c=rep.int(F, 5), d=c(F, T, F, F, F))
+    data = input(a, b, c)
+    expect_equal(data$data$best, c(NA, factor("c"), NA, NA, NA))
+})
+
+test_that("best is determined correctly", {
+    features = data.frame(benchmark=c("qwh_30_332_0_2053695854357871005.pls", "qwh_30_332_10_2945194472877206461.pls", "qwh_30_332_11_7795859673851708282.pls"),
+        feat1=c(0,0,0))
+    times = data.frame(benchmark=c("qwh_30_332_0_2053695854357871005.pls", "qwh_30_332_10_2945194472877206461.pls", "qwh_30_332_11_7795859673851708282.pls"),
+        direct.direct=c(59.7379, 80.4268, 465.3020), direct.ladder_direct=c(31.6882, 40.2449, 226.6520), direct.pairwise_and_ladder_direct=c(34.7447, 80.9897, 156.7410),
+        direct.support=c(78.6420, 27.6008, 1304.6100))
+
+    data = input(features, times)
+    expect_equal(as.character(data$data$best), c("direct.ladder_direct", "direct.support", "direct.pairwise_and_ladder_direct"))
 })
 
 test_that("input orders successes by performances", {

@@ -41,7 +41,9 @@ compute all features is included as well.
 \source{
 Hurley, B., Kotthoff, L., Malitsky, Y., O'Sullivan, B. (2014)
 Proteus: A Hierarchical Portfolio of Solvers and Transformations.
-\emph{Eleventh International Conference on Integration of Artificial Intelligence (AI) and Operations Research (OR) techniques in Constraint Programming}.
+\emph{Eleventh International Conference on Integration of Artificial
+Intelligence (AI) and Operations Research (OR) techniques in Constraint
+Programming}.
 }
 \seealso{
 \code{\link{input}}

@@ -108,7 +108,7 @@ rese = cluster(clusterer=list(makeLearner("cluster.XMeans"),
 # ensemble clustering with a classifier to combine predictions
 rese = cluster(clusterer=list(makeLearner("cluster.XMeans"),
     makeLearner("cluster.SimpleKMeans"), makeLearner("cluster.EM"),
-    .combine=J48), data=folds, pre=normalize)
+    .combine=makeLearner("classif.J48")), data=folds, pre=normalize)
 }
 }
 \keyword{ ~cluster }

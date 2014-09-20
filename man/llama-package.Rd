@@ -77,7 +77,7 @@ print(sum(misclassificationPenalties(folds, model)))
 print(sum(parscores(folds, model)))
 
 # number of total successes for virtual best solver for comparison
-print(sum(successes(satsolvers, vbs)))
+print(sum(successes(satsolvers, vbs, addCosts = FALSE)))
 
 # print predictions on the entire data set
 print(model$predictor(subset(satsolvers$data, TRUE, satsolvers$features)))

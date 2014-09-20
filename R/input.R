@@ -16,14 +16,6 @@ function(features, performances, successes=NULL, costs=NULL, minimize=T) {
     }
 
     combined = merge(features, performances, by=common)
-    optfun = if(minimize) { min } else { max }
-    combined$best = apply(subset(combined, select=pnames), 1,
-        function(x) {
-            factor(pnames[which(unlist(x) == optfun(unlist(x)))])
-        })
-    # simplify...
-    names(combined$best) = NULL
-
     snames = NULL
     if(!is.null(successes)) {
         commonSuccess = intersect(names(successes), common)
@@ -34,10 +26,32 @@ function(features, performances, successes=NULL, costs=NULL, minimize=T) {
         if(length(intersect(successNames, pnames)) != length(successNames)) {
             stop(paste("Successes (", paste(successNames, collapse=", "), ") and performances (", paste(pnames, collapse=", "), ") for different algorithms given!", sep=""))
         }
-        names(successes) = c(commonSuccess, sapply(successNames[order(match(successNames, pnames))], function(x) { paste(x, "success", sep="_") }))
+        names(successes) = c(commonSuccess, sapply(successNames, function(x) { paste(x, "success", sep="_") }))
+        # reorder successes according to performances
+        successes = successes[c(commonSuccess, sapply(successNames[order(match(successNames, pnames))], function(x) { paste(x, "success", sep="_") }))]
         combined = merge(combined, successes, by=common)
         snames = setdiff(names(successes), common)
     }
+
+    optfun = if(minimize) { min } else { max }
+    combined$best = apply(combined, 1,
+        function(x) {
+            tosel = pnames
+            if(!is.null(successes)) {
+                nosuccs = sapply(snames[which(x[snames] == FALSE)], function(x) { unlist(strsplit(x, "_"))[1] })
+                tosel = setdiff(pnames, nosuccs)
+            }
+            if(length(tosel) == 0) {
+                # nothing was able to solve this instance
+                NA
+            } else {
+                perfs = as.numeric(x[tosel])
+                factor(tosel[which(perfs == optfun(perfs))])
+            }
+        })
+    # simplify...
+    names(combined$best) = NULL
+
 
     retval = list(data=combined, features=setdiff(names(features), common), performance=pnames, success=snames, minimize=minimize)
 

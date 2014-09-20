@@ -1,5 +1,5 @@
 parscores <-
-function(data=NULL, model=NULL, factor=10, timeout=NULL) {
+function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=TRUE) {
     if(is.null(data) || is.null(model)) {
         stop("Need both data and model to calculate PAR scores!")
     }
@@ -34,11 +34,12 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL) {
         sapply(1:nrow(data$test[[i]]), function(j) {
             perfs = subset(data$test[[i]][j,], T, data$performance)
             successes = subset(data$test[[i]][j,], T, data$success)
-            if(is.null(data$cost)) {
+            if(!addCosts || is.null(data$cost)) {
                 costs = 0
             } else {
                 if(is.null(data$costGroups)) {
-                    costs = sum(subset(data$test[[i]][j,], T, data$features))
+                    # take only costs for features used in the model
+                    costs = sum(subset(data$test[[i]][j,], T, intersect(data$cost, sapply(data$features, function(x) { paste(x, "cost", sep="_") }))))
                 } else {
                     # figure out which feature groups are being used
                     usedGroups = subset(data$cost, sapply(data$cost, function(x) { length(intersect(data$costGroups[[x]], data$features)) > 0 }))
@@ -46,9 +47,13 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL) {
                 }
             }
             chosen = which(data$performance == predictions[[i]][[j]]$algorithm[1])
-            score = as.numeric(perfs[chosen]) + costs
-            if(!as.logical(successes[chosen]) || score > timeout) {
-                score = timeout * factor
+            if(length(chosen) == 0) {
+                score = NA
+            } else {
+                score = as.numeric(perfs[chosen]) + costs
+                if(!as.logical(successes[chosen]) || score > timeout) {
+                    score = timeout * factor
+                }
             }
             score
         })

@@ -51,6 +51,17 @@ evaluate the learned models, this argument is required however and will lead to
 error messages if not supplied.
 
 Similarly, feature costs are optional.
+
+If \code{successes} is given, it is used to determine the best algorithm on each
+problem instance. That is, an algorithm can only be best if it was successful.
+If no algorithm was successful, the value will be \code{NA}. Special care should
+be taken when preparing the performance values for unsuccessful algorithms. For
+example, if the performance measure is runtime and success is determined by
+whether the algorithm was able to find a solution within a timeout, the
+performance value for unsuccessful algorithms should be the timeout value. If
+the algorithm failed because of some other reason in a short amount of time,
+specifying this small amount of time may confuse some of the algorithm selection
+model learners.
 }
 \value{
 \item{data}{the combined data (features, performance, successes).}

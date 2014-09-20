@@ -7,7 +7,7 @@ Success
 Was the problem solved successfully using the chosen algorithm?
 }
 \usage{
-successes(data, model, timeout)
+successes(data, model, timeout, addCosts = TRUE)
 }
 \arguments{
   \item{data}{the data used to induce the model. The same as given to
@@ -20,18 +20,31 @@ successes(data, model, timeout)
   \item{timeout}{the timeout value to be multiplied by the penalization factor.
       If not specified, the maximum performance value of all algorithms on the
       entire data is used.}
+  \item{addCosts}{whether to add feature costs. This should always be true (the
+      default) except for comparison algorithms (i.e. single best and virtual
+      best).}
 }
 \details{
 Returns TRUE if the chosen algorithm successfully solved the problem instance,
 FALSE otherwise for each problem instance.
 
-If feature costs have been given, the cost of the used features or feature
-groups is added to the performance of the chosen algorithm. The used features
-are determined by examining the the \code{features} member of \code{data}, not
-the model. If after that the performance value is above the timeout value,
-\code{FALSE} is assumed. If whether an algorithm was successful is not
-determined by performance and feature costs, don't pass costs when creating the
-LLAMA data frame.
+If feature costs have been given and \code{addCosts} is \code{TRUE}, the cost of
+the used features or feature groups is added to the performance of the chosen
+algorithm. The used features are determined by examining the the \code{features}
+member of \code{data}, not the model. If after that the performance value is
+above the timeout value, \code{FALSE} is assumed. If whether an algorithm was
+successful is not determined by performance and feature costs, don't pass costs
+when creating the LLAMA data frame.
+
+If the model returns \code{NA} (e.g. because no algorithm solved the instance),
+\code{NA} is returned as success.
+
+\code{data} may contain a train/test partition or not. This makes a difference
+when computing the successes for the single best algorithm. If no train/test
+split is present, the single best algorithm is determined on the entire data. If
+it is present, the single best algorithm is determined on each test partition.
+That is, the single best is local to the partition and may vary across
+partitions.
 }
 \value{
 A list of the success values.

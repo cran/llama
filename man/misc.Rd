@@ -28,9 +28,9 @@ singleBestBySuccesses(data = NULL)
 \details{
 \code{vbs} and \code{singleBest} take a data frame of input data and return
 predictions that correspond to the virtual best and the single best algorithm,
-respectively. The virtual best picks the best algorithm for each instance. The
-single best picks the algorithm that has the best cumulative performance over
-the entire data set.
+respectively. The virtual best picks the best algorithm for each instance. If no
+algorithm solved in the instance, \code{NA} is returned. The single best picks
+the algorithm that has the best cumulative performance over the entire data set.
 
 \code{singleBestByCount} returns the algorithm that has the best performance
 the highest number of times over the entire data set. Only whether or not an
@@ -55,15 +55,18 @@ Lars Kotthoff
 data(satsolvers)
 
 # number of total successes for virtual best solver
-print(sum(successes(satsolvers, vbs)))
+print(sum(successes(satsolvers, vbs, addCosts = FALSE)))
 # number of total successes for single best solver by count
-print(sum(successes(satsolvers, singleBestByCount)))
+print(sum(successes(satsolvers, singleBestByCount,
+    addCosts = FALSE)))
 
 # sum of PAR10 scores for single best solver by PAR10 score
-print(sum(parscores(satsolvers, singleBestByPar)))
+print(sum(parscores(satsolvers, singleBestByPar,
+    addCosts = FALSE)))
 
 # number of total successes for single best solver by successes
-print(sum(successes(satsolvers, singleBestBySuccesses)))
+print(sum(successes(satsolvers, singleBestBySuccesses,
+    addCosts = FALSE)))
 }
 }
 \keyword{ ~models }

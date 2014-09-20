@@ -25,6 +25,16 @@ of the best algorithm for each datum. Returns the absolute difference. This
 denotes the penalty for choosing a suboptimal algorithm, e.g. the additional
 time required to solve a problem or reduction in solution quality incurred. The
 misclassification penalty of the virtual best is always zero.
+
+If the model returns \code{NA} (e.g. because no algorithm solved the instance),
+\code{NA} is returned as misclassification penalty.
+
+\code{data} may contain a train/test partition or not. This makes a difference
+when computing the misclassification penalties for the single best algorithm.
+If no train/test split is present, the single best algorithm is determined on
+the entire data. If it is present, the single best algorithm is determined on
+each test partition. That is, the single best is local to the partition and may
+vary across partitions.
 }
 \value{
 A list of the misclassification penalties.
