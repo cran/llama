@@ -1,57 +1,146 @@
 test_that("cluster raises error without clusterer", {
-    expect_error(cluster(), "No clusterer given!")
+    expect_error(cluster())
+})
+
+test_that("cluster raises error without data", {
+    expect_error(cluster(testclusterer))
 })
 
 test_that("cluster raises error without train/test split", {
-    expect_error(cluster(function() { return(NULL) }), "Need data with train/test split!")
+    expect_error(cluster(testclusterer, dnosplit))
 })
 
 test_that("cluster raises error with unknown bestBy", {
-    fold = data.frame(a=rep.int(0, 10), b=rep.int(1, 10), best=rep.int("b", 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("b"), minimize=T)
     expect_error(cluster(testclusterer, d, bestBy="foo"), "Unknown bestBy: foo")
 })
 
 test_that("cluster finds best for cluster", {
-    fold = data.frame(a=rep.int(0, 10), b=rep.int(1, 10), c=rep.int(0, 10), best=rep.int("b", 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("b", "c"), minimize=T)
-    res = cluster(testclusterer, d)
-    expect_true(all(sapply(1:length(res$predictions), function(i) { sapply(res$predictions[[i]], function(x) { x == data.frame(algorithm=c("c", "b"), score=c(0, 10)) }) })))
+    res = cluster(testclusterer, g)
+    algs = c("c", "b")
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, factor(algs, levels=algs))
+        expect_equal(ss$score, c(0, 10))
+    })
 })
 
 test_that("cluster finds best by count for cluster", {
-    fold = data.frame(a=rep.int(0, 10), b=rep.int(1, 10), c=rep.int(0, 10), best=rep.int("b", 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("b", "c"), minimize=T)
-    res = cluster(testclusterer, d, bestBy="count")
-    expect_true(all(sapply(1:length(res$predictions), function(i) { sapply(res$predictions[[i]], function(x) { x == data.frame(algorithm="b", score=10) }) })))
+    res = cluster(testclusterer, g, bestBy="count")
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, factor("b"))
+        expect_equal(ss$score, 10)
+    })
 })
 
 test_that("cluster finds best by successes for cluster", {
-    fold = data.frame(a=rep.int(0, 10), b=rep.int(1, 10), c=rep.int(0, 10), best=rep.int("b", 10), d=rep.int(T, 10), e=rep.int(F, 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("b", "c"), success=c("d", "e"), minimize=T)
-    res = cluster(testclusterer, d, bestBy="successes")
-    expect_true(all(sapply(1:length(res$predictions), function(i) { sapply(res$predictions[[i]], function(x) { x == data.frame(algorithm=c("b", "c"), score=c(10, 0)) }) })))
+    res = cluster(testclusterer, g, bestBy="successes")
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, factor(c("b", "c")))
+        expect_equal(ss$score, c(10, 0))
+    })
 })
 
 test_that("cluster returns predictor", {
-    fold = data.frame(a=rep.int(0, 10), b=rep.int(1, 10), best=rep.int("b", 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("b"), minimize=T)
-    res = cluster(testclusterer, d)
-    expect_true(all(sapply(res$predictor(fold), function(x) { x == data.frame(algorithm="b", score=20) })))
+    res = cluster(testclusterer, g)
+    algs = c("c", "b")
+    foldg$id = 1:10
+    preds = res$predictor(foldg)
+    expect_equal(unique(preds$id), 1:10)
+    by(preds, preds$id, function(ss) {
+        expect_equal(ss$algorithm, factor(algs, levels=algs))
+        expect_equal(ss$score, c(0, 20))
+    })
+})
+
+test_that("cluster returns predictor that works without IDs", {
+    res = cluster(testclusterer, g)
+    algs = c("c", "b")
+    foldg$id = 1:10
+    preds = res$predictor(foldg[g$features])
+    expect_equal(unique(preds$id), 1:10)
+    by(preds, preds$id, function(ss) {
+        expect_equal(ss$algorithm, factor(algs, levels=algs))
+        expect_equal(ss$score, c(0, 20))
+    })
 })
 
 test_that("cluster takes list of clusterers", {
-    fold = data.frame(a=rep.int(0, 10), b=rep.int(1, 10), best=rep.int("b", 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("b"), minimize=T)
-    res = cluster(list(testclusterer, testclusterer, testclusterer), d)
-    expect_true(all(sapply(1:length(res$predictions), function(i) { sapply(res$predictions[[i]], function(x) { x == data.frame(algorithm="b", score=30) }) })))
-    expect_true(all(sapply(res$predictor(fold), function(x) { x == data.frame(algorithm="b", score=60) })))
+    res = cluster(list(testclusterer, testclusterer, testclusterer), g)
+    algs = c("c", "b")
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, factor(algs, levels=algs))
+        expect_equal(ss$score, c(0, 30))
+    })
+
+    foldg$id = 1:10
+    preds = res$predictor(foldg)
+    expect_equal(unique(preds$id), 1:10)
+    by(preds, preds$id, function(ss) {
+        expect_equal(ss$algorithm, factor(algs, levels=algs))
+        expect_equal(ss$score, c(0, 60))
+    })
 })
 
 test_that("cluster takes list of clusterers and combinator", {
-    fold = data.frame(a=rep.int(0, 10), b=rep.int(1, 10), best=rep.int("b", 10))
-    d = list(data=rbind(fold, fold), train=list(fold), test=list(fold), features=c("a"), performance=c("b"), minimize=T)
-    res = cluster(list(testclusterer, testclusterer, testclusterer, .combine=testclassifier), d)
-    expect_true(all(sapply(1:length(res$predictions), function(i) { sapply(res$predictions[[i]], function(x) { x == data.frame(algorithm="b", score=1) }) })))
-    expect_true(all(sapply(res$predictor(fold), function(x) { x == data.frame(algorithm="b", score=1) })))
+    res = cluster(list(testclusterer, testclusterer, testclusterer, .combine=idtestclassifier), g)
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, factor("c"))
+        expect_equal(ss$score, 1)
+    })
+
+    foldg$id = 1:10
+    preds = res$predictor(foldg)
+    expect_equal(unique(preds$id), 1:10)
+    by(preds, preds$id, function(ss) {
+        expect_equal(ss$algorithm, factor("c"))
+        expect_equal(ss$score, 1)
+    })
+})
+
+test_that("cluster works with NA predictions", {
+    res = cluster(natestclusterer, d)
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$score, Inf)
+    })
+    fold$id = 1:10
+    preds = res$predictor(fold)
+    expect_equal(unique(preds$id), 1:10)
+    by(preds, preds$id, function(ss) {
+        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$score, Inf)
+    })
+
+    res = cluster(list(natestclusterer, natestclusterer, natestclusterer), d)
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$score, Inf)
+    })
+    fold$id = 1:10
+    preds = res$predictor(fold)
+    expect_equal(unique(preds$id), 1:10)
+    by(preds, preds$id, function(ss) {
+        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$score, Inf)
+    })
+
+    res = cluster(list(natestclusterer, natestclusterer, natestclusterer, .combine=natestclassifier), d)
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$score, Inf)
+    })
+    fold$id = 1:10
+    preds = res$predictor(fold)
+    expect_equal(unique(preds$id), 1:10)
+    by(preds, preds$id, function(ss) {
+        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$score, Inf)
+    })
 })

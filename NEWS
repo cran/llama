@@ -1,3 +1,15 @@
+llama_0.8:
+- models computed during cross-validation can be saved by passing save.models to
+  the model builders
+- various performance improvements, especially in the score computing functions
+- introduce functions for result analysis: perfScatterPlot, predTable
+- allow to create train/test splits with bootstrapping
+- stratification for the train/test split generation functions is now turned off
+  by default
+- feature selection functionality has been retired
+- some of the internal APIs have changed -- your code may break if you rely on
+  these
+
 llama_0.7.2:
 - take success (if present) into account when determining best algorithm: if
   nothing was successful on an instance, set to NA -- this means that vbs may

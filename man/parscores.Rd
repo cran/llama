@@ -8,7 +8,7 @@ Calculates the penalized average runtime score which is commonly used for
 evaluating satisfiability solvers on a set of problems.
 }
 \usage{
-parscores(data, model, factor = 10, timeout, addCosts = TRUE)
+parscores(data, model, factor = 10, timeout, addCosts = NULL)
 }
 \arguments{
   \item{data}{the data used to induce the model. The same as given to
@@ -23,9 +23,11 @@ parscores(data, model, factor = 10, timeout, addCosts = TRUE)
   \item{timeout}{the timeout value to be multiplied by the penalization factor.
       If not specified, the maximum performance value of all algorithms on the
       entire data is used.}
-  \item{addCosts}{whether to add feature costs. This should always be true (the
-      default) except for comparison algorithms (i.e. single best and virtual
-      best).}
+  \item{addCosts}{whether to add feature costs. You should not need to set this
+      manually, the default of \code{NULL} will have LLAMA figure out
+      automatically depending on the model whether to add costs or not. This
+      should always be true (the default) except for comparison algorithms (i.e.
+      single best and virtual best).}
 }
 \details{
 Returns the penalized average runtime performances of the respective chosen
@@ -38,7 +40,7 @@ member of \code{data}, not the model. If after that the performance value is
 above the timeout value, the timeout value multiplied by the factor is assumed.
 
 If the model returns \code{NA} (e.g. because no algorithm solved the instance),
-\code{NA} is returned as PAR score.
+\code{timeout * factor} is returned as PAR score.
 
 \code{data} may contain a train/test partition or not. This makes a difference
 when computing the PAR scores for the single best algorithm. If no train/test
@@ -57,7 +59,7 @@ Lars Kotthoff
 \code{\link{misclassificationPenalties}}, \code{\link{successes}}
 }
 \examples{
-\dontrun{
+if(Sys.getenv("NOT_CRAN") == "true") {
 data(satsolvers)
 folds = cvFolds(satsolvers)
 
@@ -71,4 +73,4 @@ sum(parscores(folds, model, 5))
 sum(parscores(folds, model, timeout = 3600))
 }
 }
-\keyword{ ~models }
+\keyword{ models }

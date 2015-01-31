@@ -7,7 +7,7 @@ Success
 Was the problem solved successfully using the chosen algorithm?
 }
 \usage{
-successes(data, model, timeout, addCosts = TRUE)
+successes(data, model, timeout, addCosts = NULL)
 }
 \arguments{
   \item{data}{the data used to induce the model. The same as given to
@@ -20,13 +20,15 @@ successes(data, model, timeout, addCosts = TRUE)
   \item{timeout}{the timeout value to be multiplied by the penalization factor.
       If not specified, the maximum performance value of all algorithms on the
       entire data is used.}
-  \item{addCosts}{whether to add feature costs. This should always be true (the
-      default) except for comparison algorithms (i.e. single best and virtual
-      best).}
+  \item{addCosts}{whether to add feature costs. You should not need to set this
+      manually, the default of \code{NULL} will have LLAMA figure out
+      automatically depending on the model whether to add costs or not. This
+      should always be true (the default) except for comparison algorithms (i.e.
+      single best and virtual best).}
 }
 \details{
-Returns TRUE if the chosen algorithm successfully solved the problem instance,
-FALSE otherwise for each problem instance.
+Returns \code{TRUE} if the chosen algorithm successfully solved the problem
+instance, \code{FALSE} otherwise for each problem instance.
 
 If feature costs have been given and \code{addCosts} is \code{TRUE}, the cost of
 the used features or feature groups is added to the performance of the chosen
@@ -37,7 +39,7 @@ successful is not determined by performance and feature costs, don't pass costs
 when creating the LLAMA data frame.
 
 If the model returns \code{NA} (e.g. because no algorithm solved the instance),
-\code{NA} is returned as success.
+\code{FALSE} is returned as success.
 
 \code{data} may contain a train/test partition or not. This makes a difference
 when computing the successes for the single best algorithm. If no train/test
@@ -56,7 +58,7 @@ Lars Kotthoff
 \code{\link{misclassificationPenalties}}, \code{\link{parscores}}
 }
 \examples{
-\dontrun{
+if(Sys.getenv("NOT_CRAN") == "true") {
 data(satsolvers)
 folds = cvFolds(satsolvers)
 
@@ -64,4 +66,4 @@ model = classify(classifier=makeLearner("classif.J48"), data=folds)
 sum(successes(folds, model))
 }
 }
-\keyword{ ~models }
+\keyword{ models }

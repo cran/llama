@@ -1,5 +1,5 @@
 parscores <-
-function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=TRUE) {
+function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=NULL) {
     if(is.null(data) || is.null(model)) {
         stop("Need both data and model to calculate PAR scores!")
     }
@@ -7,55 +7,65 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=TRUE) {
         stop("Need successes to calculate PAR scores!")
     }
 
-    if(is.function(model)) {
-        # vbs or a model predictor
+    if(is.null(addCosts)) {
+        ac = attr(model, "addCosts")
+        if(is.null(ac) || ac == TRUE) {
+            addCosts = TRUE
+        } else {
+            addCosts = FALSE
+        }
+    }
+
+    hp = attr(model, "hasPredictions")
+    if(is.null(hp) || hp != TRUE) {
         if(length(data$test) > 0) {
-            predictions = lapply(data$test, function(x) {
-                data$data = x
+            predictions = do.call(rbind, lapply(data$test, function(x) {
+                data$data = data$data[x,]
+                data$best = data$best[x]
                 model(data)
-            })
+            }))
         } else {
             predictions = model(data)
         }
     } else {
-        # it's a model
         predictions = model$predictions
-    }
-    if(length(data$test) == 0) {
-        data$test = list(data$data)
-        predictions = list(predictions)
     }
 
     if(is.null(timeout)) {
         # if timeout value wasn't given, assume maximum from data set
-        timeout = max(subset(data$data, T, data$performance))
+        timeout = max(data$data[data$performance])
     }
-    return(unlist(lapply(1:length(data$test), function(i) {
-        sapply(1:nrow(data$test[[i]]), function(j) {
-            perfs = subset(data$test[[i]][j,], T, data$performance)
-            successes = subset(data$test[[i]][j,], T, data$success)
-            if(!addCosts || is.null(data$cost)) {
-                costs = 0
-            } else {
-                if(is.null(data$costGroups)) {
-                    # take only costs for features used in the model
-                    costs = sum(subset(data$test[[i]][j,], T, intersect(data$cost, sapply(data$features, function(x) { paste(x, "cost", sep="_") }))))
-                } else {
-                    # figure out which feature groups are being used
-                    usedGroups = subset(data$cost, sapply(data$cost, function(x) { length(intersect(data$costGroups[[x]], data$features)) > 0 }))
-                    costs = sum(subset(data$test[[i]][j,], T, usedGroups))
-                }
-            }
-            chosen = which(data$performance == predictions[[i]][[j]]$algorithm[1])
-            if(length(chosen) == 0) {
-                score = NA
-            } else {
-                score = as.numeric(perfs[chosen]) + costs
-                if(!as.logical(successes[chosen]) || score > timeout) {
-                    score = timeout * factor
-                }
+
+    if(addCosts || !is.null(data$costs)) {
+        if(is.null(data$costGroups)) {
+            usedFeatures = intersect(data$cost, sapply(data$features, function(x) { paste(x, "cost", sep="_") }))
+        } else {
+            usedFeatures = subset(data$cost, sapply(data$cost, function(x) { length(intersect(data$costGroups[[x]], data$features)) > 0 }))
+        }
+    }
+
+    perfs = data$data[data$performance]
+    successes = data$data[data$success]
+    if(!addCosts || is.null(data$cost)) {
+        costs = rep.int(0, nrow(perfs))
+    } else {
+        costs = apply(data$data[usedFeatures], 1, sum)
+    }
+    predictions$iid = match(do.call(paste, predictions[data$ids]), do.call(paste, data$data[data$ids]))
+    predictions$pid = match(predictions$algorithm, data$performance)
+    predictions$score = apply(predictions, 1, function(x) {
+        pid = as.numeric(x[["pid"]])
+        if(is.na(pid)) {
+            timeout * factor
+        } else {
+            iid = as.numeric(x[["iid"]])
+            score = as.numeric(perfs[iid,pid]) + costs[iid]
+            if(!as.logical(successes[iid,pid]) || score > timeout) {
+                score = timeout * factor
             }
             score
-        })
-    })))
+        }
+    })
+    agg = aggregate(as.formula(paste("score~", paste(c(data$ids, "iteration"), sep="+", collapse="+"))), predictions, function(ss) { ss[1] })
+    agg$score
 }

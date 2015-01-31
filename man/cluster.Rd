@@ -10,7 +10,8 @@ of the problem.
 \usage{
 cluster(clusterer = NULL, data = NULL,
     bestBy = "performance",
-    pre = function(x, y=NULL) { list(features=x) })
+    pre = function(x, y=NULL) { list(features=x) },
+    save.models = NA)
 }
 \arguments{
   \item{clusterer}{
@@ -20,7 +21,7 @@ cluster(clusterer = NULL, data = NULL,
 }
   \item{data}{
   the data to use with training and test sets. The structure returned by
-  \code{trainTest} or \code{cvFolds}.
+  one of the partitioning functions.
 }
   \item{bestBy}{
   the criteria by which to determine the best algorithm in a cluster. Can be one
@@ -29,6 +30,10 @@ cluster(clusterer = NULL, data = NULL,
   \item{pre}{
   a function to preprocess the data. Currently only \code{normalize}.
   Optional. Does nothing by default.
+}
+  \item{save.models}{
+  Whether to serialize and save the models trained during evaluation of the
+  model. If not \code{NA}, will be used as a prefix for the file name.
 }
 }
 \details{
@@ -44,6 +49,7 @@ test data and predict algorithms accordingly.
 
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
+The \code{parallelMap} level is "llama-fold".
 
 If a list of clusterers is supplied in \code{clusterer}, ensemble
 clustering is performed. That is, the models are trained and used to make
@@ -56,23 +62,38 @@ combine the ensemble predictions instead of majority voting. This classifier is
 passed the original features and the predictions of the classifiers in the
 ensemble.
 
+If all predictions of an underlying machine learning model are \code{NA}, the
+prediction will be \code{NA} for the algorithm and \code{-Inf} for the score if
+the performance value is to be maximised, \code{Inf} otherwise.
+
+If \code{save.models} is not \code{NA}, the models trained during evaluation are
+serialized into files. Each file contains a list with members \code{model} (the
+mlr model), \code{train.data} (the mlr task with the training data), and
+\code{test.data} (the data frame with the test data used to make predictions).
+The file name starts with \code{save.models}, followed by the ID of the machine
+learning model, followed by "combined" if the model combines predictions of
+other models, followed by the number of the fold. Each model for each fold is
+saved in a different file.
 }
 \value{
- \item{predictions}{a list of lists of data frames with the predictions for each
- test set. Each data frame has columns \code{algorithm} and \code{score} and is
- sorted according to preference, with the most preferred algorithm first. The
- score corresponds to the cumulative performance value for the respective
- algorithm in the cluster the instance was assigned to. That is, if
- \code{bestBy} is "performance", it is the sum of the performance over all
- training instances. If \code{bestBy} is "count", the score corresponds to the
- number of training instances that the respective algorithm was the best on, and
- if it is "successes" it corresponds to the number of training instances solved.
- If more than one clustering algorithm is used, the score corresponds to the sum
- of all instances across all clusterers. If stacking is used, each data frame
- contains simply the best algorithm with a score of 1.}
+ \item{predictions}{a data frame with the predictions for each instance and test
+ set. The columns of the data frame are the instance ID columns (as determined
+ by \code{input}), the algorithm, the score of the algorithm, and the iteration
+ (e.g. the number of the fold for cross-validation). More than one prediction
+ may be made for each instance and iteration. The score corresponds to the
+ cumulative performance value for the algorithm of the cluster the instance was
+ assigned to. That is, if \code{bestBy} is "performance", it is the sum of the
+ performance over all training instances. If \code{bestBy} is "count", the score
+ corresponds to the number of training instances that the respective algorithm
+ was the best on, and if it is "successes" it corresponds to the number of
+ training instances where the algorithm was successful. If more than one
+ clustering algorithm is used, the score corresponds to the sum of all instances
+ across all clusterers. If stacking is used, the prediction is simply the best
+ algorithm with a score of 1.}
  \item{predictor}{a function that encapsulates the model learned on the
  \emph{entire} data set. Can be called with data for the same features with the
- same feature names as the training data to obtain predictions.}
+ same feature names as the training data to obtain predictions in the same
+ format as the \code{predictions} member.}
  \item{models}{the list of models trained on the \emph{entire} data set. This is
  meant for debugging/inspection purposes and does not include any models used to
  combine predictions of individual models.}
@@ -85,7 +106,7 @@ Lars Kotthoff
 \code{\link{regressionPairs}}
 }
 \examples{
-\dontrun{
+if(Sys.getenv("NOT_CRAN") == "true") {
 data(satsolvers)
 folds = cvFolds(satsolvers)
 
@@ -93,7 +114,7 @@ res = cluster(clusterer=makeLearner("cluster.XMeans"), data=folds, pre=normalize
 # the total number of successes
 sum(successes(folds, res))
 # predictions on the entire data set
-res$predictor(subset(satsolvers$data, TRUE, satsolvers$features))
+res$predictor(satsolvers$data[satsolvers$features])
 
 # determine best by number of successes
 res = cluster(clusterer=makeLearner("cluster.XMeans"), data=folds,
@@ -111,4 +132,4 @@ rese = cluster(clusterer=list(makeLearner("cluster.XMeans"),
     .combine=makeLearner("classif.J48")), data=folds, pre=normalize)
 }
 }
-\keyword{ ~cluster }
+\keyword{ cluster }

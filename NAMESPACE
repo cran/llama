@@ -1,15 +1,19 @@
 export(
+    bsFolds,
     classify,
     classifyPairs,
     cluster,
     contributions,
     cvFolds,
-    featureFilter,
     input,
     imputeCensored,
     misclassificationPenalties,
     normalize,
     parscores,
+    perfScatterPlot,
+    predTable,
+    print.llama.data,
+    print.llama.model,
     regression,
     regressionPairs,
     singleBest,
@@ -20,7 +24,10 @@ export(
     trainTest,
     vbs
 )
-importFrom(plyr, ddply)
+S3method(print, llama.data)
+S3method(print, llama.model)
 importFrom(rJava, J, .jpackage, .jarray)
-importFrom(parallelMap, parallelMap)
+importFrom(parallelMap, parallelMap, parallelRegisterLevels)
+import(ggplot2)
 import(mlr)
+import(checkmate)

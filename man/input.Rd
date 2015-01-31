@@ -7,7 +7,8 @@ Read data
 Reads performance data that can be used to train and evaluate models.
 }
 \usage{
-input(features, performances, successes = NULL, costs = NULL, minimize = T)
+input(features, performances, successes = NULL, costs = NULL, extra = NULL,
+    minimize = T)
 }
 \arguments{
   \item{features}{
@@ -19,8 +20,8 @@ input(features, performances, successes = NULL, costs = NULL, minimize = T)
   a non-empty set of ID columns.
 }
   \item{successes}{
-  data frame that contains the success values (true/false) for each
-  algorithm on each problem instance and a non-empty set of ID columns. The
+  data frame that contains the success values (\code{TRUE}/\code{FALSE}) for
+  each algorithm on each problem instance and a non-empty set of ID columns. The
   names of the columns in this data set should be the same as the names of the
   columns in \code{performances}. Optional.
 }
@@ -33,6 +34,11 @@ input(features, performances, successes = NULL, costs = NULL, minimize = T)
   set of ID columns. If a list is specified, it is assumed to have a member
   \code{groups} that specifies which features belong to which group and a member
   \code{values} that is a data frame in the same format as before. Optional.
+}
+  \item{extra}{
+  data frame containing any extra information about the instances and a
+  non-empty set of ID columns. This is not used in modelling, but can be used
+  e.g. for visualisation. Optional.
 }
   \item{minimize}{
   whether the minimum performance value is best. Default true.
@@ -65,13 +71,15 @@ model learners.
 }
 \value{
 \item{data}{the combined data (features, performance, successes).}
+\item{best}{a list of the best algorithms.}
+\item{ids}{a list of names denoting the instance ID columns.}
 \item{features}{a list of names denoting problem features.}
 \item{performance}{a list of names denoting algorithm performances.}
 \item{success}{a list of names denoting algorithm successes.}
 \item{minimize}{true if the smaller performance values are better, else false.}
 \item{cost}{a list of names denoting feature costs.}
 \item{costGroups}{a list of list of names denoting which features belong to
-which group. Only returned if cost groups are given as input.}
+    which group. Only returned if cost groups are given as input.}
 }
 \author{
 Lars Kotthoff
@@ -110,4 +118,4 @@ input(read.csv("features.csv"), read.csv("performance.csv"),
                values=read.csv("costGroups.csv")))
 }
 }
-\keyword{ ~models }
+\keyword{ models }

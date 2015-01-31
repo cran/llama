@@ -1,6 +1,5 @@
-# FIXME: when excess (i.e. with no corresponding performance or feature) successes or costs are specified, no warning/error is given
 input <-
-function(features, performances, successes=NULL, costs=NULL, minimize=T) {
+function(features, performances, successes=NULL, costs=NULL, extra=NULL, minimize=T) {
     if(nrow(features) != nrow(performances) || (!is.null(successes) && (nrow(features) != nrow(successes) || nrow(performances) != nrow(successes)))) {
         warning("Different number of rows in data frames, taking only common rows.")
     }
@@ -10,7 +9,7 @@ function(features, performances, successes=NULL, costs=NULL, minimize=T) {
     }
     pnames = setdiff(names(performances), common)
 
-    ids = factor(do.call(paste0, subset(features, T, common)))
+    ids = factor(do.call(paste0, features[common]))
     if(length(ids) != length(levels(ids))) {
         stop("Common columns do not provide unique IDs!")
     }
@@ -34,32 +33,40 @@ function(features, performances, successes=NULL, costs=NULL, minimize=T) {
     }
 
     optfun = if(minimize) { min } else { max }
-    combined$best = apply(combined, 1,
+    best = apply(combined, 1,
         function(x) {
             tosel = pnames
             if(!is.null(successes)) {
-                nosuccs = sapply(snames[which(x[snames] == FALSE)], function(x) { unlist(strsplit(x, "_"))[1] })
+                nosuccs = sapply(snames[which(as.logical(x[snames]) == FALSE)], function(y) { unlist(strsplit(y, "_"))[1] })
                 tosel = setdiff(pnames, nosuccs)
             }
             if(length(tosel) == 0) {
                 # nothing was able to solve this instance
-                NA
+                return(NA)
             } else {
                 perfs = as.numeric(x[tosel])
-                factor(tosel[which(perfs == optfun(perfs))])
+                return(tosel[which(perfs == optfun(perfs))])
             }
         })
     # simplify...
-    names(combined$best) = NULL
+    names(best) = NULL
 
 
-    retval = list(data=combined, features=setdiff(names(features), common), performance=pnames, success=snames, minimize=minimize)
-
+    retval = list(data=combined, features=setdiff(names(features), common),
+        performance=pnames, success=snames, minimize=minimize,
+        best=best, ids=common)
+    
+    if(!is.null(extra)) {
+        extraNames = setdiff(names(extra), common)
+        combined = merge(combined, extra, by=common)
+        retval$extra = extraNames
+        retval$data = combined
+    }
 
     if(!is.null(costs)) {
         if(is.numeric(costs)) {
             # same cost for everything
-            combined$cost = rep.int(costs, times=length(combined$best))
+            combined$cost = rep.int(costs, times=length(best))
             cnames = c("cost")
         } else if(is.data.frame(costs)) {
             commonCosts = intersect(names(costs), common)
@@ -95,5 +102,6 @@ function(features, performances, successes=NULL, costs=NULL, minimize=T) {
         retval$data = combined
     }
 
+    class(retval) = "llama.data"
     return(retval)
 }

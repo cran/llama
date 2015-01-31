@@ -38,10 +38,10 @@ A Game Theoretic Approach to Measure Contributions in Algorithm Portfolios.
 \emph{Technical Report RR-13-11, University of Oxford}.
 }
 \examples{
-\dontrun{
+if(Sys.getenv("NOT_CRAN") == "true") {
 data(satsolvers)
 
 contributions(satsolvers)
 }
 }
-\keyword{ ~models }
+\keyword{ models }

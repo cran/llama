@@ -8,7 +8,7 @@ Calculates the penalty incurred because of making incorrect decisions, i.e.
 choosing suboptimal algorithms.
 }
 \usage{
-misclassificationPenalties(data, model)
+misclassificationPenalties(data, model, addCosts = NULL)
 }
 \arguments{
   \item{data}{the data used to induce the model. The same as given to
@@ -18,6 +18,8 @@ misclassificationPenalties(data, model)
       returned by one of the model-building functions or a function that returns
       predictions such as \code{vbs} or the predictor function of a trained
       model.}
+  \item{addCosts}{does nothing. Only here for compatibility with the other
+      evaluation functions.}
 }
 \details{
 Compares the performance of the respective chosen algorithm to the performance
@@ -27,7 +29,7 @@ time required to solve a problem or reduction in solution quality incurred. The
 misclassification penalty of the virtual best is always zero.
 
 If the model returns \code{NA} (e.g. because no algorithm solved the instance),
-\code{NA} is returned as misclassification penalty.
+\code{0} is returned as misclassification penalty.
 
 \code{data} may contain a train/test partition or not. This makes a difference
 when computing the misclassification penalties for the single best algorithm.
@@ -46,7 +48,7 @@ Lars Kotthoff
 \code{\link{parscores}}, \code{\link{successes}}
 }
 \examples{
-\dontrun{
+if(Sys.getenv("NOT_CRAN") == "true") {
 data(satsolvers)
 folds = cvFolds(satsolvers)
 
@@ -54,4 +56,4 @@ model = classify(classifier=makeLearner("classif.J48"), data=folds)
 sum(misclassificationPenalties(folds, model))
 }
 }
-\keyword{ ~models }
+\keyword{ models }

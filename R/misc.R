@@ -4,14 +4,18 @@ function(data=NULL) {
     if(is.null(data)) {
         stop("Need data to determine virtual best!")
     }
-    return(lapply(data$data$best, function(l) {
-        if(length(l) == 1 && is.na(l)) {
-            setNames(data.frame(foo = NA, bar = 0), predNames)
-        } else {
-            setNames(data.frame(as.table(sort(table(l), decreasing=T))), predNames)
-        }
-    }))
+    lens = sapply(data$best, length)
+    idxs = unlist(lapply(1:length(lens), function(i) { rep.int(i, lens[i]) }))
+    ids = data$data[idxs,data$ids,drop=F]
+    bests = unlist(data$best)
+    scores = rep.int(1, length(bests))
+    scores[is.na(bests)] = 0
+    return(data.frame(ids, algorithm = bests, score = scores, iteration = 1))
 }
+class(vbs) = "llama.model"
+attr(vbs, "type") = "virtual best"
+attr(vbs, "hasPredictions") = FALSE
+attr(vbs, "addCosts") = FALSE
 
 singleBestByCount <-
 function(data=NULL) {
@@ -19,9 +23,13 @@ function(data=NULL) {
         stop("Need data to determine single best!")
     }
     best = breakBestTies(data)
-    preds = rep.int(names(sort(table(best), decreasing=T)[1]), length(data$data$best))
-    return(lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) }))
+    ids = data$data[data$ids]
+    data.frame(ids, algorithm = names(sort(table(best), decreasing=T)[1]), score = 1, iteration = 1)
 }
+class(singleBestByCount) = "llama.model"
+attr(singleBestByCount, "type") = "single best"
+attr(singleBestByCount, "hasPredictions") = FALSE
+attr(singleBestByCount, "addCosts") = FALSE
 
 singleBestByPar <-
 function(data=NULL, factor=10) {
@@ -32,10 +40,21 @@ function(data=NULL, factor=10) {
         stop("Need successes to compute PAR scores.")
     }
 
-    best = names(sort(sapply(data$performance, function(x) { sum(parscores(data, list(predictions=replicate(length(data$data$best), setNames(data.frame(table(x)), predNames), simplify=F)), factor=factor)) })))[1]
-    preds = rep.int(best, length(data$data$best))
-    return(lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) }))
+    best = names(sort(sapply(data$performance, function(x) {
+        prs = data.frame(data$data[,data$ids,drop=F], algorithm = x, score = 1, iteration = 1)
+        model = list(predictions=prs, ids=c("id"))
+        class(model) = "llama.model"
+        attr(model, "hasPredictions") = TRUE
+        attr(model, "addCosts") = FALSE
+        sum(parscores(data, model, factor=factor))
+    })))[1]
+    ids = data$data[data$ids]
+    data.frame(ids, algorithm = best, score = 1, iteration = 1)
 }
+class(singleBestByPar) = "llama.model"
+attr(singleBestByPar, "type") = "single best"
+attr(singleBestByPar, "hasPredictions") = FALSE
+attr(singleBestByPar, "addCosts") = FALSE
 
 singleBestBySuccesses <-
 function(data=NULL) {
@@ -46,10 +65,21 @@ function(data=NULL) {
         stop("Need successes to compute successes.")
     }
 
-    best = names(sort(sapply(data$performance, function(x) { sum(successes(data, list(predictions=replicate(length(data$data$best), setNames(data.frame(table(x)), predNames), simplify=F)))) }), decreasing=T))[1]
-    preds = rep.int(best, length(data$data$best))
-    return(lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) }))
+    best = names(sort(sapply(data$performance, function(x) {
+        prs = data.frame(data$data[,data$ids,drop=F], algorithm = x, score = 1, iteration = 1)
+        model = list(predictions=prs, ids=c("id"))
+        class(model) = "llama.model"
+        attr(model, "hasPredictions") = TRUE
+        attr(model, "addCosts") = FALSE
+        sum(successes(data, model))
+    }), decreasing=T))[1]
+    ids = data$data[data$ids]
+    data.frame(ids, algorithm = best, score = 1, iteration = 1)
 }
+class(singleBestBySuccesses) = "llama.model"
+attr(singleBestBySuccesses, "type") = "single best"
+attr(singleBestBySuccesses, "hasPredictions") = FALSE
+attr(singleBestBySuccesses, "addCosts") = FALSE
 
 singleBest <-
 function(data=NULL) {
@@ -57,10 +87,14 @@ function(data=NULL) {
         stop("Need data to determine single best!")
     }
 
-    best = names(sort(sapply(data$performance, function(x) { sum(subset(data$data, select=x)) }), decreasing=!data$minimize))[1]
-    preds = rep.int(best, length(data$data$best))
-    return(lapply(preds, function(l) { setNames(data.frame(table(l)), predNames) }))
+    best = names(sort(sapply(data$performance, function(x) { sum(data$data[x]) }), decreasing=!data$minimize))[1]
+    ids = data$data[data$ids]
+    data.frame(ids, algorithm = best, score = 1, iteration = 1)
 }
+class(singleBest) = "llama.model"
+attr(singleBest, "type") = "single best"
+attr(singleBest, "hasPredictions") = FALSE
+attr(singleBest, "addCosts") = FALSE
 
 breakBestTies <-
 function(data=NULL, fold=NULL) {
@@ -69,13 +103,28 @@ function(data=NULL, fold=NULL) {
     }
 
     if(is.null(fold)) {
-        perfs = subset(data$data, select=data$performance)
+        perfs = data$data[data$performance]
     } else {
-        perfs = subset(data$train[[fold]], select=data$performance)
+        perfs = data$data[data$train[[fold]],][data$performance]
     }
     order = names(sort(sapply(perfs, sum), decreasing=!data$minimize))
     optfun = if(data$minimize) { which.min } else { which.max }
     best = factor(apply(perfs[order], 1, function(x) { order[optfun(unlist(x))] }))
     names(best) = NULL
     return(best)
+}
+
+predTable <-
+function(predictions=NULL, bestOnly=TRUE) {
+    if(is.null(predictions)) {
+        stop("Need predictions to tabulate!")
+    }
+    if(bestOnly) {
+        ids = setdiff(names(predictions), c(predNames))
+        lvls = levels(predictions$algorithm)
+        algorithms = factor(lvls[as.vector(by(predictions$algorithm, predictions[ids], head, 1))])
+    } else {
+        algorithms = predictions$algorithm
+    }
+    sort(table(algorithms), decreasing = TRUE)
 }

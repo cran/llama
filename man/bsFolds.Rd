@@ -1,22 +1,21 @@
-\name{cvFolds}
-\alias{cvFolds}
+\name{bsFolds}
+\alias{bsFolds}
 \title{
-Cross-validation folds
+Bootstrapping folds
 }
 \description{
 Take data produced by \code{input} and amend it with (optionally)
-stratified folds for cross-validation.
+stratified folds determined through bootstrapping.
 }
 \usage{
-cvFolds(data, nfolds = 10, stratify = FALSE)
+bsFolds(data, nfolds = 10, stratify = FALSE)
 }
 \arguments{
   \item{data}{
   the data to use. The structure returned by \code{input}.
 }
   \item{nfolds}{
-  the number of folds. Defaults to 10. If -1 is given, leave-one-out
-  cross-validation folds are produced.
+  the number of folds. Defaults to 10.
 }
   \item{stratify}{
   whether to stratify the folds. Makes really only sense for classification
@@ -26,10 +25,10 @@ cvFolds(data, nfolds = 10, stratify = FALSE)
 \details{
 Partitions the data set into folds. Stratification, if requested, is done by the
 best algorithm, i.e. the one with the best performance. The distribution of the
-best algorithms in each fold will be approximately the same. The folds are
-assembled into training and test sets by combining $n-1$ folds for training and
-using the remaining fold for testing. The sets of indices are added to the
-original data set and returned.
+best algorithms in each fold will be approximately the same. For each fold, the
+training index set is assembled through .632 boostrap. The remaining indices are
+used for testing. There is no guarantee on the sizes of either sets. The sets of
+indices are added to the original data set and returned.
 }
 \value{
 \item{train}{a list of index sets for training.}
@@ -40,16 +39,16 @@ original data set and returned.
 Lars Kotthoff
 }
 \seealso{
-\code{\link{bsFolds}}, \code{\link{trainTest}}
+\code{\link{cvFolds}}, \code{\link{trainTest}}
 }
 \examples{
 data(satsolvers)
-folds = cvFolds(satsolvers)
+folds = bsFolds(satsolvers)
 
 # use 5 folds instead of the default 10
-folds5 = cvFolds(satsolvers, 5)
+folds5 = bsFolds(satsolvers, 5)
 
 # stratify
-foldsU = cvFolds(satsolvers, stratify=TRUE)
+foldsU = bsFolds(satsolvers, stratify=TRUE)
 }
 \keyword{ models }

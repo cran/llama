@@ -1,6 +1,6 @@
 contributions <-
 function(data=NULL) {
-    if(is.null(data)) {
+    if(!testClass(data, "llama.data")) {
         stop("Need data to determine contributions!")
     }
 

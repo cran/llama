@@ -10,6 +10,18 @@ registerS3method("trainLearner", "classif.test", trainLearner.classif.test)
 registerS3method("predictLearner", "classif.test", predictLearner.classif.test)
 testclassifier = makeLearner("classif.test")
 
+makeRLearner.classif.natest = function() {
+    makeRLearnerClassif(cl = "classif.natest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "oneclass", "twoclass", "multiclass", "prob", "weights", "missings"))
+}
+trainLearner.classif.natest = function(.learner, .task, .subset, .weights, ...) { }
+predictLearner.classif.natest = function(learner, model, newdata) {
+    return(factor(rep.int(NA, nrow(newdata))))
+}
+registerS3method("makeRLearner", "classif.natest", makeRLearner.classif.natest)
+registerS3method("trainLearner", "classif.natest", trainLearner.classif.natest)
+registerS3method("predictLearner", "classif.natest", predictLearner.classif.natest)
+natestclassifier = makeLearner("classif.natest")
+
 
 makeRLearner.classif.otest = function() {
     makeRLearnerClassif(cl = "classif.otest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "oneclass", "twoclass", "multiclass", "prob"))
@@ -38,7 +50,7 @@ foo = makeLearner("classif.ftest")
 
 
 makeRLearner.classif.idtest = function() {
-    makeRLearnerClassif(cl = "classif.idtest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "twoclass", "multiclass", "weights"))
+    makeRLearnerClassif(cl = "classif.idtest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "twoclass", "multiclass", "weights", "oneclass"))
 }
 trainLearner.classif.idtest = function(.learner, .task, .subset, .weights, ...) { }
 predictLearner.classif.idtest = function(learner, model, newdata) {
@@ -77,6 +89,20 @@ registerS3method("trainLearner", "regr.test", trainLearner.regr.test)
 registerS3method("predictLearner", "regr.test", predictLearner.regr.test)
 testregressor = makeLearner("regr.test")
 
+makeRLearner.regr.natest = function() {
+    makeRLearnerRegr(cl = "regr.natest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "twoclass", "multiclass", "weights", "missings"))
+}
+trainLearner.regr.natest = function(.learner, .task, .subset, .weights, ...) {
+    .task
+}
+predictLearner.regr.natest = function(learner, model, newdata) {
+    return(rep.int(as.numeric(NA), nrow(newdata)))
+}
+registerS3method("makeRLearner", "regr.natest", makeRLearner.regr.natest)
+registerS3method("trainLearner", "regr.natest", trainLearner.regr.natest)
+registerS3method("predictLearner", "regr.natest", predictLearner.regr.natest)
+natestregressor = makeLearner("regr.natest")
+
 
 makeRLearner.regr.footest = function() {
     makeRLearnerRegr(cl = "regr.footest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "twoclass", "multiclass", "prob"))
@@ -106,3 +132,17 @@ registerS3method("makeRLearner", "cluster.test", makeRLearner.cluster.test)
 registerS3method("trainLearner", "cluster.test", trainLearner.cluster.test)
 registerS3method("predictLearner", "cluster.test", predictLearner.cluster.test)
 testclusterer = makeLearner("cluster.test")
+
+makeRLearner.cluster.natest = function() {
+    makeRLearnerCluster(cl = "cluster.natest", package = "llama", par.set = makeParamSet(), properties = c("numerics", "missings"))
+}
+trainLearner.cluster.natest = function(.learner, .task, .subset, .weights, ...) {
+    .task
+}
+predictLearner.cluster.natest = function(learner, model, newdata) {
+    return(rep.int(NA, nrow(newdata)))
+}
+registerS3method("makeRLearner", "cluster.natest", makeRLearner.cluster.natest)
+registerS3method("trainLearner", "cluster.natest", trainLearner.cluster.natest)
+registerS3method("predictLearner", "cluster.natest", predictLearner.cluster.natest)
+natestclusterer = makeLearner("cluster.natest")

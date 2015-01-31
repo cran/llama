@@ -36,11 +36,11 @@ data.}
 Lars Kotthoff
 }
 \examples{
-\dontrun{
+if(Sys.getenv("NOT_CRAN") == "true") {
 data(satsolvers)
 folds = cvFolds(satsolvers)
 
 cluster(clusterer=makeLearner("cluster.XMeans"), data=folds, pre=normalize)
 }
 }
-\keyword{ ~models }
+\keyword{ models }

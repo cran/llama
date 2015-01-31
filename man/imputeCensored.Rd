@@ -49,9 +49,9 @@ A Simple Method for Regression Analysis with Censored Data.
 \emph{Technometrics} 21, no. 4, 417-432.
 }
 \examples{
-\dontrun{
+if(Sys.getenv("NOT_CRAN") == "true") {
 data(satsolvers)
 imputed = imputeCensored(satsolvers)
 }
 }
-\keyword{ ~imputation }
+\keyword{ imputation }

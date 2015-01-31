@@ -38,13 +38,14 @@ algorithms in R.
 
 The model building functions are using the \code{parallelMap} package
 (\url{https://github.com/berndbischl/parallelMap}) to parallelize across the
-data partitions (e.g. cross-validation folds). By default, everything is run
-sequentially. By loading a suitable backend (e.g. through
-\code{parallelStartSocket(2)} for parallelization across 2 CPUs using sockets),
-the model building will be parallelized automatically and transparently.
-Note that this does \emph{not} mean that all machine learning algorithms used
-for building models can be parallelized safely. For functions that are not
-thread safe, use \code{parallelStartSocket} to run in separate processes.
+data partitions (e.g. cross-validation folds) with level "llama.llama-fold". By
+default, everything is run sequentially. By loading a suitable backend (e.g.
+through \code{parallelStartSocket(2)} for parallelization across 2 CPUs using
+sockets), the model building will be parallelized automatically and
+transparently. Note that this does \emph{not} mean that all machine learning
+algorithms used for building models can be parallelized safely. For functions
+that are not thread safe, use \code{parallelStartSocket} to run in separate
+processes.
 }
 \author{
 Lars Kotthoff, Bernd Bischl
@@ -64,7 +65,7 @@ Algorithm Selection for Combinatorial Search Problems: A survey.
 }
 \keyword{ package }
 \examples{
-\dontrun{
+if(Sys.getenv("NOT_CRAN") == "true") {
 data(satsolvers)
 folds = cvFolds(satsolvers)
 
@@ -82,11 +83,7 @@ print(sum(successes(satsolvers, vbs, addCosts = FALSE)))
 # print predictions on the entire data set
 print(model$predictor(subset(satsolvers$data, TRUE, satsolvers$features)))
 
-# filter features and train a regression model
-library(FSelector)
-
-filtered = featureFilter(cfs, satsolvers)
-folds = cvFolds(filtered)
+# train a regression model
 model = regression(regressor=makeLearner("regr.lm"), data=folds)
 # print the total number of successes
 print(sum(successes(folds, model)))

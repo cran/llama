@@ -6,8 +6,8 @@ test_that("input reads features and performances", {
     expect_equal(data$features, c("b"))
     expect_equal(data$performance, c("c"))
     expect_equal(data$success, c())
-    expect_equal(dim(data$data), c(5, 4))
-    expect_equal(data$data$best, factor(rep.int("c", 5)))
+    expect_equal(dim(data$data), c(5, 3))
+    expect_equal(data$best, rep.int("c", 5))
 })
 
 test_that("input determines best", {
@@ -17,7 +17,7 @@ test_that("input determines best", {
     data = input(a, b)
     expect_equal(data$features, c("b"))
     expect_equal(data$performance, c("c", "d"))
-    expect_equal(data$data$best, factor(rep.int("c", 5)))
+    expect_equal(data$best, rep.int("c", 5))
 })
 
 test_that("input determines best with max", {
@@ -27,7 +27,7 @@ test_that("input determines best with max", {
     data = input(a, b, minimize=F)
     expect_equal(data$features, c("b"))
     expect_equal(data$performance, c("c", "d"))
-    expect_equal(data$data$best, factor(rep.int("d", 5)))
+    expect_equal(data$best, rep.int("d", 5))
 })
 
 test_that("input determines best and reports all ties", {
@@ -37,8 +37,8 @@ test_that("input determines best and reports all ties", {
     data = input(a, b)
     expect_equal(data$features, c("b"))
     expect_equal(data$performance, c("c", "d"))
-    expectedBest = list(factor("d"), factor(c("c", "d")), factor(c("c", "d")), factor(c("c", "d")), factor(c("c", "d")))
-    expect_equal(data$data$best, expectedBest)
+    expectedBest = list("d", c("c", "d"), c("c", "d"), c("c", "d"), c("c", "d"))
+    expect_equal(data$best, expectedBest)
 })
 
 test_that("input reads features, performances and successes", {
@@ -50,8 +50,8 @@ test_that("input reads features, performances and successes", {
     expect_equal(data$features, c("b"))
     expect_equal(data$performance, c("c"))
     expect_equal(data$success, c("c_success"))
-    expect_equal(dim(data$data), c(5, 5))
-    expect_equal(data$data$best, factor(rep.int("c", 5)))
+    expect_equal(dim(data$data), c(5, 4))
+    expect_equal(data$best, rep.int("c", 5))
 })
 
 test_that("input takes success into account when determining best", {
@@ -63,16 +63,25 @@ test_that("input takes success into account when determining best", {
     expect_equal(data$features, c("b"))
     expect_equal(data$performance, c("c", "d"))
     expect_equal(data$success, c("c_success", "d_success"))
-    expect_equal(dim(data$data), c(5, 7))
-    expect_equal(data$data$best, factor(rep.int("c", 5)))
+    expect_equal(dim(data$data), c(5, 6))
+    expect_equal(data$best, rep.int("c", 5))
 
     c = data.frame(a=c(1:5), c=rep.int(F, 5), d=rep.int(F, 5))
     data = input(a, b, c)
-    expect_equal(data$data$best, rep.int(NA, 5))
+    expect_equal(data$best, rep.int(NA, 5))
 
     c = data.frame(a=c(1:5), c=rep.int(F, 5), d=c(F, T, F, F, F))
     data = input(a, b, c)
-    expect_equal(data$data$best, c(NA, factor("c"), NA, NA, NA))
+    expect_equal(data$best, c(NA, "d", NA, NA, NA))
+})
+
+test_that("input works with mixed NA and actual bests", {
+    a = data.frame(a=c(1:5), b=rep.int(1, 5))
+    b = data.frame(a=c(1:5), c=rep.int(1, 5), d=rep.int(0, 5))
+    c = data.frame(a=c(1:5), c=c(T, T, F, F, T), d=c(T, T, T, F, F))
+
+    data = input(a, b, c)
+    expect_equal(data$best, c("d", "d", "d", NA, "c"))
 })
 
 test_that("best is determined correctly", {
@@ -83,7 +92,7 @@ test_that("best is determined correctly", {
         direct.support=c(78.6420, 27.6008, 1304.6100))
 
     data = input(features, times)
-    expect_equal(as.character(data$data$best), c("direct.ladder_direct", "direct.support", "direct.pairwise_and_ladder_direct"))
+    expect_equal(as.character(data$best), c("direct.ladder_direct", "direct.support", "direct.pairwise_and_ladder_direct"))
 })
 
 test_that("input orders successes by performances", {
@@ -95,8 +104,8 @@ test_that("input orders successes by performances", {
     expect_equal(data$features, c("b"))
     expect_equal(data$performance, c("c", "d"))
     expect_equal(data$success, c("c_success", "d_success"))
-    expect_equal(dim(data$data), c(5, 7))
-    expect_equal(data$data$best, factor(rep.int("c", 5)))
+    expect_equal(dim(data$data), c(5, 6))
+    expect_equal(data$best, rep.int("c", 5))
 })
 
 test_that("input allows to specify single cost for all", {
@@ -178,6 +187,14 @@ test_that("input warns about differing number of rows", {
     expect_warning(input(a, b), "Different number of rows in data frames, taking only common rows.")
 })
 
+test_that("input errors when performances and successes don't match", {
+    a = data.frame(a=c(1:5), b=rep.int(1, 5))
+    b = data.frame(a=c(1:5), c=rep.int(1, 5))
+    c = data.frame(a=c(1:5), d=rep.int(T, 5))
+
+    expect_error(input(a, b, c), "Successes")
+})
+
 test_that("input errors when not being able to link", {
     a = data.frame(a=rep.int(1, 5))
     b = data.frame(b=rep.int(1, 5))
@@ -191,3 +208,15 @@ test_that("input errors with non-unique IDs", {
 
     expect_error(input(a, b), "Common columns do not provide unique IDs!")
 })
+
+test_that("input allows to specify extra data", {
+    a = data.frame(a=c(1:5), b=rep.int(1, 5))
+    b = data.frame(a=c(1:5), c=rep.int(1, 5))
+
+    data = input(a, b, extra=data.frame(a=c(1:5), foo=c(1:5)))
+    expect_equal(data$features, c("b"))
+    expect_equal(data$performance, c("c"))
+    expect_equal(data$extra, c("foo"))
+    expect_equal(data$data$foo, c(1:5))
+})
+
