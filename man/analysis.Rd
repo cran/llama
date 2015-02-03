@@ -38,7 +38,7 @@ A Game Theoretic Approach to Measure Contributions in Algorithm Portfolios.
 \emph{Technical Report RR-13-11, University of Oxford}.
 }
 \examples{
-if(Sys.getenv("NOT_CRAN") == "true") {
+if(Sys.getenv("RUN_EXPENSIVE") == "true") {
 data(satsolvers)
 
 contributions(satsolvers)

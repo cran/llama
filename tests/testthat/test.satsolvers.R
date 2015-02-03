@@ -5,7 +5,7 @@ vbsm = sum(misclassificationPenalties(satsolvers, vbs))
 vbss = sum(successes(satsolvers, vbs))
 
 test_that("singleBest and vbs", {
-    skip_on_cran()
+    skip.expensive()
 
     vbsse = sum(apply(satsolvers$data[satsolvers$success], 1, max))
     expect_equal(vbsse, 2125)
@@ -42,7 +42,7 @@ test_that("singleBest and vbs", {
 folds = cvFolds(satsolvers)
 
 test_that("classify", {
-    skip_on_cran()
+    skip.expensive()
 
     res = classify(classifier=makeLearner("classif.OneR"), data=folds)
     expect_true(sum(parscores(folds, res)) > vbsp)
@@ -71,7 +71,7 @@ test_that("classify", {
 })
 
 test_that("classifyPairs", {
-    skip_on_cran()
+    skip.expensive()
 
     res = classifyPairs(classifier=makeLearner("classif.OneR"), data=folds)
     expect_true(sum(parscores(folds, res)) > vbsp)
@@ -89,7 +89,7 @@ test_that("classifyPairs", {
 })
 
 test_that("cluster", {
-    skip_on_cran()
+    skip.expensive()
 
     res = cluster(clusterer=makeLearner("cluster.SimpleKMeans"), data=folds, pre=normalize)
     expect_true(sum(parscores(folds, res)) > vbsp)
@@ -124,7 +124,7 @@ test_that("cluster", {
 })
 
 test_that("regression", {
-    skip_on_cran()
+    skip.expensive()
 
     res = regression(regressor=makeLearner("regr.lm"), data=folds)
     expect_true(sum(parscores(folds, res)) > vbsp)
@@ -152,7 +152,7 @@ test_that("regression", {
 })
 
 test_that("regressionPairs", {
-    skip_on_cran()
+    skip.expensive()
 
     res = regressionPairs(regressor=makeLearner("regr.lm"), data=folds)
     expect_true(sum(parscores(folds, res)) > vbsp)
@@ -169,7 +169,7 @@ test_that("regressionPairs", {
 })
 
 test_that("perfScatterPlot", {
-    skip_on_cran()
+    skip.expensive()
 
     model = classify(classifier=makeLearner("classif.J48"), data=folds)
     library(ggplot2)

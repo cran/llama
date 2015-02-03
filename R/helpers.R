@@ -29,3 +29,9 @@ function(l) {
         paste(x, " = [", paste(l[[x]], collapse=", "), "]", sep="")
     }), collapse="")
 }
+
+skip.expensive <-
+function() {
+    cond = structure(list(message = "Skipping expensive run."), class = c("skip", "condition"))
+    if(Sys.getenv("RUN_EXPENSIVE") != "true") stop(cond)
+}

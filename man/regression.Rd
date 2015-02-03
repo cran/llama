@@ -106,7 +106,7 @@ Hybrid Regression-Classification Models for Algorithm Selection.
 \emph{20th European Conference on Artificial Intelligence}, 480--485.
 }
 \examples{
-if(Sys.getenv("NOT_CRAN") == "true") {
+if(Sys.getenv("RUN_EXPENSIVE") == "true") {
 data(satsolvers)
 folds = cvFolds(satsolvers)
 

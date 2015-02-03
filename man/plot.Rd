@@ -56,7 +56,7 @@ Lars Kotthoff
 \code{\link{misclassificationPenalties}}, \code{\link{parscores}}, \code{\link{successes}}
 }
 \examples{
-if(Sys.getenv("NOT_CRAN") == "true") {
+if(Sys.getenv("RUN_EXPENSIVE") == "true") {
 data(satsolvers)
 folds = cvFolds(satsolvers)
 model = classify(classifier=makeLearner("classif.J48"), data=folds)

@@ -76,7 +76,7 @@ bartestclassifier = makeLearner("classif.bartest")
 
 
 makeRLearner.regr.test = function() {
-    makeRLearnerRegr(cl = "regr.test", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "twoclass", "multiclass", "weights"))
+    makeRLearnerRegr(cl = "regr.test", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "weights"))
 }
 trainLearner.regr.test = function(.learner, .task, .subset, .weights, ...) {
     .task
@@ -90,7 +90,7 @@ registerS3method("predictLearner", "regr.test", predictLearner.regr.test)
 testregressor = makeLearner("regr.test")
 
 makeRLearner.regr.natest = function() {
-    makeRLearnerRegr(cl = "regr.natest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "twoclass", "multiclass", "weights", "missings"))
+    makeRLearnerRegr(cl = "regr.natest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "weights", "missings"))
 }
 trainLearner.regr.natest = function(.learner, .task, .subset, .weights, ...) {
     .task
@@ -105,7 +105,7 @@ natestregressor = makeLearner("regr.natest")
 
 
 makeRLearner.regr.footest = function() {
-    makeRLearnerRegr(cl = "regr.footest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "twoclass", "multiclass", "prob"))
+    makeRLearnerRegr(cl = "regr.footest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors"))
 }
 trainLearner.regr.footest = function(.learner, .task, .subset, .weights, ...) {
     .task

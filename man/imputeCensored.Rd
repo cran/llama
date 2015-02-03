@@ -49,7 +49,7 @@ A Simple Method for Regression Analysis with Censored Data.
 \emph{Technometrics} 21, no. 4, 417-432.
 }
 \examples{
-if(Sys.getenv("NOT_CRAN") == "true") {
+if(Sys.getenv("RUN_EXPENSIVE") == "true") {
 data(satsolvers)
 imputed = imputeCensored(satsolvers)
 }

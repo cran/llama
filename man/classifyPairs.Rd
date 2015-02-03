@@ -107,7 +107,7 @@ Hydra-MIP: Automated Algorithm Configuration and Selection for Mixed Integer Pro
 Problems with Combinatorial Explosion}, 16--30.
 }
 \examples{
-if(Sys.getenv("NOT_CRAN") == "true") {
+if(Sys.getenv("RUN_EXPENSIVE") == "true") {
 data(satsolvers)
 folds = cvFolds(satsolvers)
 

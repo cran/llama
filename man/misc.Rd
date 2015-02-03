@@ -70,7 +70,7 @@ For \code{predTable}, a table.
 Lars Kotthoff
 }
 \examples{
-if(Sys.getenv("NOT_CRAN") == "true") {
+if(Sys.getenv("RUN_EXPENSIVE") == "true") {
 data(satsolvers)
 
 # number of total successes for virtual best solver
