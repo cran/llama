@@ -19,7 +19,7 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=NULL) {
     hp = attr(model, "hasPredictions")
     if(is.null(hp) || hp != TRUE) {
         if(length(data$test) > 0) {
-            predictions = do.call(rbind, lapply(data$test, function(x) {
+            predictions = rbind.fill(lapply(data$test, function(x) {
                 data$data = data$data[x,]
                 data$best = data$best[x]
                 model(data)
@@ -69,3 +69,5 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=NULL) {
     agg = aggregate(as.formula(paste("score~", paste(c(data$ids, "iteration"), sep="+", collapse="+"))), predictions, function(ss) { ss[1] })
     agg$score
 }
+class(parscores) = "llama.metric"
+attr(parscores, "minimize") = TRUE

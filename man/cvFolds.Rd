@@ -8,7 +8,7 @@ Take data produced by \code{input} and amend it with (optionally)
 stratified folds for cross-validation.
 }
 \usage{
-cvFolds(data, nfolds = 10, stratify = FALSE)
+cvFolds(data, nfolds = 10L, stratify = FALSE)
 }
 \arguments{
   \item{data}{
@@ -30,6 +30,8 @@ best algorithms in each fold will be approximately the same. The folds are
 assembled into training and test sets by combining $n-1$ folds for training and
 using the remaining fold for testing. The sets of indices are added to the
 original data set and returned.
+
+If the data set has train and test partitions already, they are overwritten.
 }
 \value{
 \item{train}{a list of index sets for training.}
@@ -47,7 +49,7 @@ data(satsolvers)
 folds = cvFolds(satsolvers)
 
 # use 5 folds instead of the default 10
-folds5 = cvFolds(satsolvers, 5)
+folds5 = cvFolds(satsolvers, 5L)
 
 # stratify
 foldsU = cvFolds(satsolvers, stratify=TRUE)

@@ -1,13 +1,16 @@
 cvFolds <-
-function(data, nfolds = 10, stratify = FALSE) {
-    if(nfolds == -1) {
-        stratify = F
+function(data, nfolds = 10L, stratify = FALSE) {
+    assertClass(data, "llama.data")
+    assertInteger(nfolds)
+
+    if(nfolds == -1L) {
+        stratify = FALSE
         nfolds = nrow(data$data)
     }
     if(stratify) {
         stratifier = sapply(data$best, paste, collapse="-")
     } else {
-        stratifier = rep.int(T, nrow(data$data))
+        stratifier = rep.int(TRUE, nrow(data$data))
     }
 
     tmp = do.call(c, by(1:nrow(data$data), stratifier, function(x) {
@@ -19,10 +22,9 @@ function(data, nfolds = 10, stratify = FALSE) {
     }
     parts = split(1:nrow(data$data), tmp)
 
-    newdata = c(data,
-            list(train = lapply(1:nfolds, function(x) { return(unsplit(parts[-x], tmp[tmp!=x])) }),
-                 test = lapply(1:nfolds, function(x) { return(parts[[x]]) })))
-    class(newdata) = "llama.data"
+    newdata = data
+    newdata$train = lapply(1:nfolds, function(x) { return(unsplit(parts[-x], tmp[tmp!=x])) })
+    newdata$test = lapply(1:nfolds, function(x) { return(parts[[x]]) })
     attr(newdata, "hasSplits") = TRUE
     return(newdata)
 }

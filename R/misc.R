@@ -46,7 +46,7 @@ function(data=NULL, factor=10) {
         class(model) = "llama.model"
         attr(model, "hasPredictions") = TRUE
         attr(model, "addCosts") = FALSE
-        sum(parscores(data, model, factor=factor))
+        mean(parscores(data, model, factor=factor))
     })))[1]
     ids = data$data[data$ids]
     data.frame(ids, algorithm = best, score = 1, iteration = 1)
@@ -71,7 +71,7 @@ function(data=NULL) {
         class(model) = "llama.model"
         attr(model, "hasPredictions") = TRUE
         attr(model, "addCosts") = FALSE
-        sum(successes(data, model))
+        mean(successes(data, model))
     }), decreasing=T))[1]
     ids = data$data[data$ids]
     data.frame(ids, algorithm = best, score = 1, iteration = 1)
@@ -87,7 +87,7 @@ function(data=NULL) {
         stop("Need data to determine single best!")
     }
 
-    best = names(sort(sapply(data$performance, function(x) { sum(data$data[x]) }), decreasing=!data$minimize))[1]
+    best = names(sort(sapply(data$performance, function(x) { mean(data$data[,x]) }), decreasing=!data$minimize))[1]
     ids = data$data[data$ids]
     data.frame(ids, algorithm = best, score = 1, iteration = 1)
 }
@@ -107,7 +107,7 @@ function(data=NULL, fold=NULL) {
     } else {
         perfs = data$data[data$train[[fold]],][data$performance]
     }
-    order = names(sort(sapply(perfs, sum), decreasing=!data$minimize))
+    order = names(sort(sapply(perfs, mean), decreasing=!data$minimize))
     optfun = if(data$minimize) { which.min } else { which.max }
     best = factor(apply(perfs[order], 1, function(x) { order[optfun(unlist(x))] }))
     names(best) = NULL

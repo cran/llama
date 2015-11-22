@@ -1,5 +1,7 @@
 makeRLearner.classif.test = function() {
-    makeRLearnerClassif(cl = "classif.test", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "oneclass", "twoclass", "multiclass", "prob", "weights"))
+    makeRLearnerClassif(cl = "classif.test", package="llama",
+        par.set=makeParamSet(makeIntegerLearnerParam(id = "test")),
+        properties=c("numerics", "factors", "oneclass", "twoclass", "multiclass", "prob", "weights"))
 }
 trainLearner.classif.test = function(.learner, .task, .subset, .weights, ...) { }
 predictLearner.classif.test = function(learner, model, newdata) {
@@ -75,6 +77,24 @@ registerS3method("predictLearner", "classif.bartest", predictLearner.classif.bar
 bartestclassifier = makeLearner("classif.bartest")
 
 
+makeRLearner.classif.probtest = function() {
+    makeRLearnerClassif(cl = "classif.probtest", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "twoclass", "multiclass", "weights", "prob"))
+}
+trainLearner.classif.probtest = function(.learner, .task, .subset, .weights, ...) {
+    classes = getTaskClassLevels(.task)
+    return(classes)
+}
+predictLearner.classif.probtest = function(learner, model, newdata) {
+    m = matrix((1:9/10)[1:(length(model$learner.model))], nrow = nrow(newdata), ncol = length(model$learner.model), byrow = TRUE)
+    colnames(m) = model$learner.model
+    return(m)
+}
+registerS3method("makeRLearner", "classif.probtest", makeRLearner.classif.probtest)
+registerS3method("trainLearner", "classif.probtest", trainLearner.classif.probtest)
+registerS3method("predictLearner", "classif.probtest", predictLearner.classif.probtest)
+probtestclassifier = makeLearner("classif.probtest", predict.type = "prob")
+
+
 makeRLearner.regr.test = function() {
     makeRLearnerRegr(cl = "regr.test", package="llama", par.set=makeParamSet(), properties=c("numerics", "factors", "weights"))
 }
@@ -126,7 +146,7 @@ trainLearner.cluster.test = function(.learner, .task, .subset, .weights, ...) {
     .task
 }
 predictLearner.cluster.test = function(learner, model, newdata) {
-    return(rep.int(1, nrow(newdata)))
+    return(as.integer(rep.int(1, nrow(newdata))))
 }
 registerS3method("makeRLearner", "cluster.test", makeRLearner.cluster.test)
 registerS3method("trainLearner", "cluster.test", trainLearner.cluster.test)
@@ -140,7 +160,7 @@ trainLearner.cluster.natest = function(.learner, .task, .subset, .weights, ...) 
     .task
 }
 predictLearner.cluster.natest = function(learner, model, newdata) {
-    return(rep.int(NA, nrow(newdata)))
+    return(as.integer(rep.int(NA, nrow(newdata))))
 }
 registerS3method("makeRLearner", "cluster.natest", makeRLearner.cluster.natest)
 registerS3method("trainLearner", "cluster.natest", trainLearner.cluster.natest)

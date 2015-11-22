@@ -6,5 +6,5 @@ function(libname, pkgname)
 
 .onAttach <-
 function(libname, pkgname) {
-    parallelRegisterLevels(pkgname, c("llama-fold"))
+    parallelRegisterLevels(pkgname, c("fold", "tune"))
 }

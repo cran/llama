@@ -113,3 +113,14 @@ test_that("regression works with NA predictions", {
         expect_equal(ss$score, Inf)
     })
 })
+
+test_that("regression works with single algorithm", {
+    dp = d
+    dp$performance = c("b")
+    res = regression(testregressor, dp)
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, factor(c("b")))
+        expect_equal(ss$score, c(1))
+    })
+})

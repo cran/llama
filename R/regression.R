@@ -12,7 +12,7 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
     worstScore = if(data$minimize) { Inf } else { -Inf }
 
     totalBests = data.frame(target=factor(breakBestTies(data), levels=data$performance))
-    predictions = do.call(rbind, parallelMap(function(i) {
+    predictions = rbind.fill(parallelMap(function(i) {
         trf = pre(data$data[data$train[[i]],][data$features])
         tsf = pre(data$data[data$test[[i]],][data$features], trf$meta)
         ids = data$data[data$test[[i]],][data$ids]
@@ -27,16 +27,16 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
                 saveRDS(list(model=model, train.data=task, test.data=tsf$features), file = paste(save.models, regressor$id, data$performance[[j]], i, "rds", sep="."))
             }
             if(!is.null(combine)) {
-                trainpredictions[,j] = predict(model, newdata=trf$features)$data$response
+                trainpredictions[,j] = getPredictionResponse(predict(model, newdata=trf$features))
             }
-            performancePredictions[,j] = predict(model, newdata=tsf$features)$data$response
+            performancePredictions[,j] = getPredictionResponse(predict(model, newdata=tsf$features))
         }
         colnames(performancePredictions) = data$performance
 
         if(!is.null(combine)) {
             colnames(trainpredictions) = data$performance
             trainBests = data.frame(target=factor(breakBestTies(data, i), levels=data$performance))
-            if(hasProperties(combine, "weights") && use.weights) {
+            if(hasLearnerProperties(combine, "weights") && use.weights) {
                 trw = abs(apply(trp, 1, max) - apply(trp, 1, min))
                 task = makeClassifTask(id="regression", target="target", weights=trw, data=cbind(trainBests, trf$features, data.frame(expand(trainpredictions))))
             } else {
@@ -46,8 +46,8 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
             if(!is.na(save.models)) {
                 saveRDS(list(model=combinedmodel, train.data=task, test.data=cbind(tsf$features, data.frame(expand(performancePredictions)))), file = paste(save.models, combine$id, "combined", i, "rds", sep="."))
             }
-            preds = predict(combinedmodel, newdata=cbind(tsf$features, data.frame(expand(performancePredictions))))$data$response
-            combinedpredictions = do.call(rbind, lapply(1:length(preds), function(j) {
+            preds = getPredictionResponse(predict(combinedmodel, newdata=cbind(tsf$features, data.frame(expand(performancePredictions)))))
+            combinedpredictions = rbind.fill(lapply(1:length(preds), function(j) {
                 if(all(is.na(preds[j,drop=F]))) {
                     data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=i, row.names = NULL)
                 } else {
@@ -56,17 +56,17 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
                 }
             }))
         } else {
-            combinedpredictions = do.call(rbind, lapply(1:nrow(performancePredictions), function(j) {
+            combinedpredictions = rbind.fill(lapply(1:nrow(performancePredictions), function(j) {
                 if(all(is.na(performancePredictions[j,]))) {
                     data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=i, row.names = NULL)
                 } else {
-                    x = sort(performancePredictions[j,], decreasing = !data$minimize)
+                    x = sort(performancePredictions[j,,drop=F], decreasing = !data$minimize)
                     data.frame(ids[j,,drop=F], algorithm=names(x), score=unlist(x), iteration=i, row.names = NULL)
                 }
             }))
         }
         return(combinedpredictions)
-    }, 1:length(data$train), level = "llama.llama-fold"))
+    }, 1:length(data$train), level = "llama.fold"))
 
     fs = pre(data$data[data$features])
     fp = data$data[data$performance]
@@ -78,10 +78,10 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
     if(!is.null(combine)) {
         trainpredictions = data.frame(row.names=1:nrow(fs$features))
         for (i in 1:length(data$performance)) {
-            trainpredictions[,i] = predict(models[[i]], newdata=fs$features)$data$response
+            trainpredictions[,i] = getPredictionResponse(predict(models[[i]], newdata=fs$features))
         }
         colnames(trainpredictions) = data$performance
-        if(hasProperties(combine, "weights") && use.weights) {
+        if(hasLearnerProperties(combine, "weights") && use.weights) {
             task = makeClassifTask(id="regression", target="target", weights=fw, data=cbind(totalBests, fs$features, data.frame(expand(trainpredictions))))
         } else {
             task = makeClassifTask(id="regression", target="target", data=cbind(totalBests, fs$features, data.frame(expand(trainpredictions))))
@@ -98,13 +98,13 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
         }
         performancePredictions = data.frame(row.names=1:nrow(tsf$features))
         for (i in 1:length(data$performance)) {
-            performancePredictions[,i] = predict(models[[i]], newdata=tsf$features)$data$response
+            performancePredictions[,i] = getPredictionResponse(predict(models[[i]], newdata=tsf$features))
         }
         colnames(performancePredictions) = data$performance
 
         if(!is.null(combine)) {
-            preds = predict(combinedmodel, newdata=cbind(tsf$features, data.frame(expand(performancePredictions))))$data$response
-            combinedpredictions = do.call(rbind, lapply(1:length(preds), function(j) {
+            preds = getPredictionResponse(predict(combinedmodel, newdata=cbind(tsf$features, data.frame(expand(performancePredictions)))))
+            combinedpredictions = rbind.fill(lapply(1:length(preds), function(j) {
                 if(all(is.na(preds[j,drop=F]))) {
                     data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=1, row.names = NULL)
                 } else {
@@ -113,7 +113,7 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
                 }
             }))
         } else {
-            combinedpredictions = do.call(rbind, lapply(1:nrow(performancePredictions), function(j) {
+            combinedpredictions = rbind.fill(lapply(1:nrow(performancePredictions), function(j) {
                 if(all(is.na(performancePredictions[j,]))) {
                     data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=1, row.names = NULL)
                 } else {
@@ -137,3 +137,4 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
 
     return(retval)
 }
+class(regression) = "llama.modelFunction"

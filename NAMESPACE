@@ -9,8 +9,10 @@ export(
     imputeCensored,
     misclassificationPenalties,
     normalize,
+    makeRLearner.classif.constant,
     parscores,
     perfScatterPlot,
+    predictLearner.classif.constant,
     predTable,
     print.llama.data,
     print.llama.model,
@@ -22,12 +24,21 @@ export(
     singleBestBySuccesses,
     successes,
     trainTest,
+    trainLearner.classif.constant,
+    tuneModel,
     vbs
 )
 S3method(print, llama.data)
 S3method(print, llama.model)
+S3method(makeRLearner, classif.constant)
+S3method(trainLearner, classif.constant)
+S3method(predictLearner, classif.constant)
+importFrom(BBmisc, getMinIndex, getMaxIndex)
 importFrom(rJava, J, .jpackage, .jarray)
 importFrom(parallelMap, parallelMap, parallelRegisterLevels)
+importFrom(plyr, rbind.fill)
+importFrom("stats", "aggregate", "as.formula", "predict", "setNames")
+importFrom("utils", "combn", "head")
+import(checkmate)
 import(ggplot2)
 import(mlr)
-import(checkmate)

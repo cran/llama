@@ -49,7 +49,7 @@ test data and predict algorithms accordingly.
 
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
-The \code{parallelMap} level is "llama-fold".
+The \code{parallelMap} level is "llama.fold".
 
 If a list of clusterers is supplied in \code{clusterer}, ensemble
 clustering is performed. That is, the models are trained and used to make

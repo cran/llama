@@ -11,14 +11,14 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
 
     totalBests = data.frame(target=factor(breakBestTies(data), levels=data$performance))
     combns = combn(data$performance, 2)
-    predictions = do.call(rbind, parallelMap(function(i) {
+    predictions = rbind.fill(parallelMap(function(i) {
         trf = pre(data$data[data$train[[i]],][data$features])
         tsf = pre(data$data[data$test[[i]],][data$features], trf$meta)
         ids = data$data[data$test[[i]],][data$ids]
         trp = data$data[data$train[[i]],][data$performance]
 
-        trainpredictions = data.frame(row.names=1:nrow(trf$features))
-        pairpredictions = data.frame(row.names=1:nrow(tsf$features))
+        trainpredictions = list()
+        pairpredictions = list()
         for (j in 1:ncol(combns)) {
             if(data$minimize) {
                 cmp = function(x, y) {
@@ -29,55 +29,78 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
                     sapply(data$data[data$train[[i]],][x] > data$data[data$train[[i]],][y], function(z) { if(z) { x } else { y } })
                 }
             }
-            labels = data.frame(target=factor(cmp(combns[1,j], combns[2,j]), levels=data$performance))
-            if(hasProperties(classifier, "weights") && use.weights) {
-                task = makeClassifTask(id="classifyPairs", target="target", weights=abs(data$data[data$train[[i]],][combns[1,j]] - data$data[data$train[[i]],][combns[2,j]]), data=cbind(labels, trf$features), fixup.data="quiet")
+            labels = data.frame(target=factor(cmp(combns[1,j], combns[2,j])))
+            if(hasLearnerProperties(classifier, "weights") && use.weights) {
+                trw = abs(data$data[data$train[[i]],combns[1,j]] - data$data[data$train[[i]],combns[2,j]])
+                task = makeClassifTask(id="classifyPairs", target="target", weights=trw, data=data.frame(labels, trf$features), fixup.data="quiet", check.data=FALSE)
             } else {
-                task = makeClassifTask(id="classifyPairs", target="target", data=cbind(labels, trf$features), fixup.data="quiet")
+                task = makeClassifTask(id="classifyPairs", target="target", data=data.frame(labels, trf$features), fixup.data="quiet", check.data=FALSE)
             }
-            model = train(classifier, task = task)
+            if(length(unique(labels$target)) == 1) {
+                # one-class problem
+                model = train(constantClassifier, task = task)
+            } else {
+                model = train(classifier, task = task)
+            }
             if(!is.na(save.models)) {
                 saveRDS(list(model=model, train.data=task, test.data=tsf$features), file = paste(save.models, classifier$id, combns[1,j], combns[2,j], i, "rds", sep="."))
             }
             if(!is.null(combine)) { # only do this if we need it
-                trainpredictions[,j] = predict(model, newdata=trf$features)$data$response
+                preds = predict(model, newdata=trf$features)
+                trainpredictions[[j]] = if(preds$predict.type == "prob") {
+                    getPredictionProbabilities(preds, preds$task.desc$class.levels)
+                } else {
+                    tmp = getPredictionResponse(preds)
+                    rbind.fill(lapply(tmp, function(x) data.frame(t(setNames(as.numeric(x == levels(tmp)), levels(tmp))))))
+                }
             }
-            pairpredictions[,j] = predict(model, newdata=tsf$features)$data$response
+            preds = predict(model, newdata=tsf$features)
+            pairpredictions[[j]] = if(preds$predict.type == "prob") {
+                getPredictionProbabilities(preds, preds$task.desc$class.levels)
+            } else {
+                tmp = getPredictionResponse(preds)
+                rbind.fill(lapply(tmp, function(x) data.frame(t(setNames(as.numeric(x == levels(tmp)), levels(tmp))))))
+            }
         }
 
         if(!is.null(combine)) {
             trainBests = data.frame(target=factor(breakBestTies(data, i), levels=data$performance))
-            if(hasProperties(combine, "weights") && use.weights) {
+            if(hasLearnerProperties(combine, "weights") && use.weights) {
                 trw = abs(apply(trp, 1, max) - apply(trp, 1, min))
-                task = makeClassifTask(id="classifyPairs", target="target", weights=trw, data=cbind(trainBests, trf$features, lapply(data.frame(trainpredictions), factor, levels=data$performance)), fixup.data="quiet")
+                task = makeClassifTask(id="classifyPairs", target="target", weights=trw, data=data.frame(trainBests, trf$features, trainpredictions), fixup.data="quiet", check.data=FALSE)
             } else {
-                task = makeClassifTask(id="classifyPairs", target="target", data=cbind(trainBests, trf$features, lapply(data.frame(trainpredictions), factor, levels=data$performance)), fixup.data="quiet")
+                task = makeClassifTask(id="classifyPairs", target="target", data=data.frame(trainBests, trf$features, trainpredictions), fixup.data="quiet", check.data=FALSE)
             }
-            combinedmodel = train(combine, task = task)
+            if(length(unique(trainBests$target)) == 1) {
+                # one-class problem
+                combinedmodel = train(constantClassifier, task = task)
+            } else {
+                combinedmodel = train(combine, task = task)
+            }
             if(!is.na(save.models)) {
-                saveRDS(list(model=combinedmodel, train.data=task, test.data=cbind(tsf$features, lapply(data.frame(pairpredictions), factor, levels=data$performance))), file = paste(save.models, combine$id, "combined", i, "rds", sep="."))
+                saveRDS(list(model=combinedmodel, train.data=task, test.data=data.frame(tsf$features, pairpredictions)), file = paste(save.models, combine$id, "combined", i, "rds", sep="."))
             }
-            preds = predict(combinedmodel, newdata=cbind(tsf$features, lapply(data.frame(pairpredictions), factor, levels=data$performance)))$data$response
-            combinedpredictions = do.call(rbind, lapply(1:length(preds), function(j) {
-                if(all(is.na(preds[j,drop=F]))) {
-                    data.frame(ids[j,,drop=F], algorithm=NA, score=-Inf, iteration=i, row.names = NULL)
-                } else {
-                    tab = as.table(sort(table(preds[j,drop=F]), decreasing=T))
-                    data.frame(ids[j,,drop=F], algorithm=names(tab), score=as.vector(tab), iteration=i, row.names = NULL)
-                }
+            preds = predict(combinedmodel, newdata=data.frame(tsf$features, pairpredictions))
+            if(preds$predict.type == "prob") {
+                preds = getPredictionProbabilities(preds, preds$task.desc$class.levels)
+            } else {
+                preds = getPredictionResponse(preds)
+                preds = rbind.fill(lapply(preds, function(x) data.frame(t(setNames(as.numeric(x == levels(preds)), levels(preds))))))
+            }
+            combinedpredictions = rbind.fill(lapply(1:nrow(preds), function(j) {
+                ss = preds[j,,drop=F]
+                ord = order(ss, decreasing = TRUE)
+                data.frame(ids[j,,drop=F], algorithm=names(ss)[ord], score=as.numeric(ss)[ord], iteration=i, row.names = NULL)
             }))
         } else {
-            combinedpredictions = do.call(rbind, lapply(1:nrow(pairpredictions), function(j) {
-                if(all(is.na(pairpredictions[j,]))) {
-                    data.frame(ids[j,,drop=F], algorithm=NA, score=-Inf, iteration=i, row.names = NULL)
-                } else {
-                    tab = as.table(sort(table(unlist(pairpredictions[j,])), decreasing=T))
-                    data.frame(ids[j,,drop=F], algorithm=names(tab), score=as.vector(tab), iteration=i, row.names = NULL)
-                }
+            merged = Reduce('+', pairpredictions)
+            combinedpredictions = rbind.fill(lapply(1:nrow(merged), function(j) {
+                ord = order(merged[j,], decreasing = TRUE)
+                data.frame(ids[j,,drop=F], algorithm=names(merged)[ord], score=as.numeric(merged[j,])[ord], iteration=i, row.names = NULL)
             }))
         }
         return(combinedpredictions)
-    }, 1:length(data$train), level = "llama.llama-fold"))
+    }, 1:length(data$train), level = "llama.fold"))
 
     fs = pre(data$data[data$features])
     fp = data$data[data$performance]
@@ -92,25 +115,42 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
                 sapply(data$data[[x]] > data$data[[y]], function(z) { if(z) { x } else { y } })
             }
         }
-        labels = data.frame(target=factor(cmp(combns[1,i], combns[2,i]), levels=data$performance))
-        if(hasProperties(classifier, "weights") && use.weights) {
-            task = makeClassifTask(id="classifyPairs", target="target", weights=abs(data$data[[combns[1,i]]] - data$data[[combns[2,i]]]), data=cbind(labels, fs$features), fixup.data="quiet")
+        labels = data.frame(target=factor(cmp(combns[1,i], combns[2,i])))
+        if(hasLearnerProperties(classifier, "weights") && use.weights) {
+            task = makeClassifTask(id="classifyPairs", target="target", weights=abs(data$data[[combns[1,i]]] - data$data[[combns[2,i]]]), data=data.frame(labels, fs$features), fixup.data="quiet", check.data=FALSE)
         } else {
-            task = makeClassifTask(id="classifyPairs", target="target", data=cbind(labels, fs$features), fixup.data="quiet")
+            task = makeClassifTask(id="classifyPairs", target="target", data=data.frame(labels, fs$features), fixup.data="quiet", check.data=FALSE)
         }
-        return(train(classifier, task = task))
+        if(length(unique(labels$target)) == 1) {
+            # one-class problem
+            model = train(constantClassifier, task = task)
+        } else {
+            model = train(classifier, task = task)
+        }
+        return(model)
     })
     if(!is.null(combine)) {
-        trainpredictions = data.frame(row.names=1:nrow(fs$features))
+        trainpredictions = list()
         for(i in 1:ncol(combns)) {
-            trainpredictions[,i] = predict(models[[i]], newdata=fs$features)$data$response
+            preds = predict(models[[i]], newdata=fs$features)
+            trainpredictions[[i]] = if(preds$predict.type == "prob") {
+                getPredictionProbabilities(preds, preds$task.desc$class.levels)
+            } else {
+                tmp = getPredictionResponse(preds)
+                rbind.fill(lapply(tmp, function(x) data.frame(t(setNames(as.numeric(x == levels(tmp)), levels(tmp))))))
+            }
         }
-        if(hasProperties(combine, "weights") && use.weights) {
-            task = makeClassifTask(id="classifyPairs", target="target", weights=fw, data=cbind(totalBests, fs$features, lapply(data.frame(trainpredictions), factor, levels=data$performance)), fixup.data="quiet")
+        if(hasLearnerProperties(combine, "weights") && use.weights) {
+            task = makeClassifTask(id="classifyPairs", target="target", weights=fw, data=data.frame(totalBests, fs$features, trainpredictions), fixup.data="quiet", check.data=FALSE)
         } else {
-            task = makeClassifTask(id="classifyPairs", target="target", data=cbind(totalBests, fs$features, lapply(data.frame(trainpredictions), factor, levels=data$performance)), fixup.data="quiet")
+            task = makeClassifTask(id="classifyPairs", target="target", data=data.frame(totalBests, fs$features, trainpredictions), fixup.data="quiet", check.data=FALSE)
         }
-        combinedmodel = train(combine, task = task)
+        if(length(unique(totalBests$target)) == 1) {
+            # one-class problem
+            combinedmodel = train(constantClassifier, task = task)
+        } else {
+            combinedmodel = train(combine, task = task)
+        }
     }
 
     predictor = function(x) {
@@ -120,28 +160,34 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
         } else {
             ids = data.frame(id = 1:nrow(x)) # don't have IDs, generate them
         }
-        pairpredictions = data.frame(row.names=1:nrow(tsf$features))
+        pairpredictions = list()
         for(i in 1:ncol(combns)) {
-            pairpredictions[,i] = predict(models[[i]], newdata=tsf$features)$data$response
+            preds = predict(models[[i]], newdata=tsf$features)
+            pairpredictions[[i]] = if(preds$predict.type == "prob") {
+                getPredictionProbabilities(preds, preds$task.desc$class.levels)
+            } else {
+                tmp = getPredictionResponse(preds)
+                rbind.fill(lapply(tmp, function(x) data.frame(t(setNames(as.numeric(x == levels(tmp)), levels(tmp))))))
+            }
         }
         if(!is.null(combine)) {
-            preds = predict(combinedmodel, newdata=cbind(tsf$features, lapply(data.frame(pairpredictions), factor, levels=data$performance)))$data$response
-            combinedpredictions = do.call(rbind, lapply(1:length(preds), function(j) {
-                if(all(is.na(preds[j,drop=F]))) {
-                    data.frame(ids[j,,drop=F], algorithm=NA, score=-Inf, iteration=1, row.names = NULL)
-                } else {
-                    tab = as.table(sort(table(preds[j,drop=F]), decreasing=T))
-                    data.frame(ids[j,,drop=F], algorithm=names(tab), score=as.vector(tab), iteration=1, row.names = NULL)
-                }
+            preds = predict(combinedmodel, newdata=data.frame(tsf$features, pairpredictions))
+            if(preds$predict.type == "prob") {
+                preds = getPredictionProbabilities(preds, preds$task.desc$class.levels)
+            } else {
+                preds = getPredictionResponse(preds)
+                preds = rbind.fill(lapply(preds, function(x) data.frame(t(setNames(as.numeric(x == levels(preds)), levels(preds))))))
+            }
+            combinedpredictions =  rbind.fill(lapply(1:nrow(preds), function(j) {
+                ss = preds[j,,drop=F]
+                ord = order(ss, decreasing = TRUE)
+                data.frame(ids[j,,drop=F], algorithm=names(ss)[ord], score=as.numeric(ss)[ord], iteration=i, row.names = NULL)
             }))
         } else {
-            combinedpredictions = do.call(rbind, lapply(1:nrow(pairpredictions), function(j) {
-                if(all(is.na(pairpredictions[j,]))) {
-                    data.frame(ids[j,,drop=F], algorithm=NA, score=-Inf, iteration=1, row.names = NULL)
-                } else {
-                    tab = as.table(sort(table(unlist(pairpredictions[j,])), decreasing=T))
-                    data.frame(ids[j,,drop=F], algorithm=names(tab), score=as.vector(tab), iteration=1, row.names = NULL)
-                }
+            merged = Reduce('+', pairpredictions)
+            combinedpredictions = rbind.fill(lapply(1:nrow(merged), function(j) {
+                ord = order(merged[j,], decreasing = TRUE)
+                data.frame(ids[j,,drop=F], algorithm=names(merged)[ord], score=as.numeric(merged[j,])[ord], iteration=i, row.names = NULL)
             }))
         }
         return(combinedpredictions)
@@ -159,3 +205,4 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
 
     return(retval)
 }
+class(classifyPairs) = "llama.modelFunction"

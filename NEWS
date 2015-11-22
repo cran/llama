@@ -1,3 +1,13 @@
+llama_0.9:
+- stricter argument checking: the number of folds to partition in must be an
+  integer
+- the functions that generate partitions into train/test now overwrite any
+  existing partitions
+- automatic tuning of models is now supported through the tuneModel function
+- mlr 2.5 compatiblity
+- classification functions can now use learners that predict probabilities
+- various small bug and reliability fixes
+
 llama_0.8:
 - models computed during cross-validation can be saved by passing save.models to
   the model builders

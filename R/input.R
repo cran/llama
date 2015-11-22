@@ -82,6 +82,10 @@ function(features, performances, successes=NULL, costs=NULL, extra=NULL, minimiz
             combined = merge(combined, costs, by=common)
         } else if(is.list(costs)) {
             # cost groups
+            dups = intersect(names(costs$groups), retval$features)
+            if(length(dups) > 0) {
+                stop(paste("Some cost groups have the same names as features:", paste(dups, collapse=", ")))
+            }
             retval$costGroups = costs$groups
             commonCosts = intersect(names(costs$values), common)
             cnames = setdiff(names(costs$values), common)

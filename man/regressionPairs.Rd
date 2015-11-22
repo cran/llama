@@ -60,7 +60,7 @@ the other algorithms, while negative numbers denote that it is usually worse.
 
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
-The \code{parallelMap} level is "llama-fold".
+The \code{parallelMap} level is "llama.fold".
 
 Training this model can take a very long time. Given \code{n} algorithms,
 \code{choose(n, 2) * n} models are trained and evaluated. This is significantly

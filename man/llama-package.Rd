@@ -38,21 +38,21 @@ algorithms in R.
 
 The model building functions are using the \code{parallelMap} package
 (\url{https://github.com/berndbischl/parallelMap}) to parallelize across the
-data partitions (e.g. cross-validation folds) with level "llama.llama-fold". By
-default, everything is run sequentially. By loading a suitable backend (e.g.
-through \code{parallelStartSocket(2)} for parallelization across 2 CPUs using
-sockets), the model building will be parallelized automatically and
-transparently. Note that this does \emph{not} mean that all machine learning
-algorithms used for building models can be parallelized safely. For functions
-that are not thread safe, use \code{parallelStartSocket} to run in separate
-processes.
+data partitions (e.g. cross-validation folds) with level "llama.fold" and
+"llama.tune" for tuning. By default, everything is run sequentially. By loading
+a suitable backend (e.g. through \code{parallelStartSocket(2)} for
+parallelization across 2 CPUs using sockets), the model building will be
+parallelized automatically and transparently. Note that this does \emph{not}
+mean that all machine learning algorithms used for building models can be
+parallelized safely. For functions that are not thread safe, use
+\code{parallelStartSocket} to run in separate processes.
 }
 \author{
 Lars Kotthoff, Bernd Bischl
 
 contributions by Barry Hurley, Talal Rahwan
 
-Maintainer: Lars Kotthoff <lars.kotthoff@insight-centre.org>
+Maintainer: Lars Kotthoff <larsko@cs.ubc.ca>
 }
 \references{
 Kotthoff, L. (2013)

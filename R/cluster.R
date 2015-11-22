@@ -16,14 +16,14 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
     }
 
     if(bestBy == "performance") {
-        innerbest = function(ss) { sort(sapply(data$performance, function(x) { sum(ss[x]) }), decreasing=!data$minimize) }
+        innerbest = function(ss) { sort(sapply(data$performance, function(x) { mean(ss[,x]) }), decreasing=!data$minimize) }
     } else if(bestBy == "count") {
         innerbest = function(ss) { sort(table(data$best[as.integer(rownames(ss))]), decreasing=T) }
     } else if(bestBy == "successes") {
         if(is.null(data$success)) {
             stop("Need successes to determine best by successes!")
         }
-        innerbest = function(ss) { setNames(sort(sapply(data$success, function(x) { colSums(ss[x])[1] }), decreasing=T), data$performance) }
+        innerbest = function(ss) { setNames(sort(sapply(data$success, function(x) { colMeans(ss[x])[1] }), decreasing=T), data$performance) }
     } else {
         stop(paste("Unknown bestBy: ", bestBy, sep=""))
     }
@@ -32,7 +32,7 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
     bestfun = function(ss) { setNames(data.frame(as.table(innerbest(ss))), predNames) }
 
     i = 1 # prevent warning when checking package
-    predictions = do.call(rbind, parallelMap(function(i) {
+    predictions = rbind.fill(parallelMap(function(i) {
         trf = pre(data$data[data$train[[i]],][data$features])
         tsf = pre(data$data[data$test[[i]],][data$features], trf$meta)
         ids = data$data[data$test[[i]],][data$ids]
@@ -45,14 +45,14 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
             if(!is.na(save.models)) {
                 saveRDS(list(model=model, train.data=task, test.data=tsf$features), file = paste(save.models, clusterer[[j]]$id, i, "rds", sep="."))
             }
-            trainclusters = predict(model, newdata=trf$features)$data$response
+            trainclusters = getPredictionResponse(predict(model, newdata=trf$features))
             if(all(is.na(trainclusters))) {
                 best = bestfun(data$data[data$train[[i]],])
             } else {
                 best = by(data$data[data$train[[i]],], trainclusters, bestfun)
             }
             if(inherits(combinator, "Learner")) { # only do this if we need it
-                trainpredictions[,j] = factor(sapply(predict(model, newdata=trf$features)$data$response,
+                trainpredictions[,j] = factor(sapply(getPredictionResponse(predict(model, newdata=trf$features)),
                 function(x) {
                     if(is.na(x)) {
                         factor(NA)
@@ -61,7 +61,7 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
                     }
                 }))
             }
-            preds = predict(model, newdata=tsf$features)$data$response
+            preds = getPredictionResponse(predict(model, newdata=tsf$features))
             ensemblepredictions[[j]] = list()
             for(k in 1:length(preds)) {
                 x = preds[k]
@@ -85,8 +85,8 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
                     featureData[k,j] = ensemblepredictions[[j]][[k]][1,1]
                 }
             }
-            preds = predict(combinedmodel, newdata=cbind(tsf$features, data.frame(featureData)))$data$response
-            combinedpredictions = do.call(rbind, lapply(1:length(preds), function(j) {
+            preds = getPredictionResponse(predict(combinedmodel, newdata=cbind(tsf$features, data.frame(featureData))))
+            combinedpredictions = rbind.fill(lapply(1:length(preds), function(j) {
                 if(all(is.na(preds[j,drop=F]))) {
                     data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=i, row.names = NULL)
                 } else {
@@ -95,8 +95,8 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
                 }
             }))
         } else {
-            combinedpredictions = do.call(rbind, lapply(1:nrow(ids), function(j) {
-                df = do.call(rbind, lapply(ensemblepredictions, function(x) { x[[j]] }))
+            combinedpredictions = rbind.fill(lapply(1:nrow(ids), function(j) {
+                df = rbind.fill(lapply(ensemblepredictions, function(x) { x[[j]] }))
                 if(all(is.na(df$algorithm))) {
                     data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=i, row.names = NULL)
                 } else {
@@ -107,16 +107,16 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
             }))
         }
         return(combinedpredictions)
-    }, 1:length(data$train), level = "llama.llama-fold"))
+    }, 1:length(data$train), level = "llama.fold"))
 
     fs = pre(data$data[data$features])
     models = lapply(1:length(clusterer), function(i) {
         task = makeClusterTask(id="clustering", data=fs$features)
         model = train(clusterer[[i]], task=task)
-        clusters = predict(model, newdata=fs$features)$data$response
+        clusters = getPredictionResponse(predict(model, newdata=fs$features))
         best = by(data$data, clusters, bestfun)
         return(function(newdata) {
-            preds = predict(model, newdata=newdata)$data$response
+            preds = getPredictionResponse(predict(model, newdata=newdata))
             lapply(1:length(preds), function(k) {
                 x = preds[k]
                 if(is.na(x)) {
@@ -154,8 +154,8 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
                     featureData[k,j] = ensemblepredictions[[j]][[k]][1,1]
                 }
             }
-            preds = predict(combinedmodel, newdata=cbind(tsf$features, data.frame(featureData)))$data$response
-            combinedpredictions = do.call(rbind, lapply(1:length(preds), function(j) {
+            preds = getPredictionResponse(predict(combinedmodel, newdata=cbind(tsf$features, data.frame(featureData))))
+            combinedpredictions = rbind.fill(lapply(1:length(preds), function(j) {
                 if(all(is.na(preds[j,drop=F]))) {
                     data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=1, row.names = NULL)
                 } else {
@@ -164,8 +164,8 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
                 }
             }))
         } else {
-            combinedpredictions = do.call(rbind, lapply(1:nrow(ids), function(j) {
-                df = do.call(rbind, lapply(ensemblepredictions, function(x) { x[[j]] }))
+            combinedpredictions = rbind.fill(lapply(1:nrow(ids), function(j) {
+                df = rbind.fill(lapply(ensemblepredictions, function(x) { x[[j]] }))
                 if(all(is.na(df$algorithm))) {
                     data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=1, row.names = NULL)
                 } else {
@@ -190,3 +190,4 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
 
     return(retval)
 }
+class(cluster) = "llama.modelFunction"

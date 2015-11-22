@@ -180,6 +180,16 @@ test_that("input stops if cost groups and specified costs disagree", {
     expect_error(input(a, b, costs=costs), "Cost groups ")
 })
 
+test_that("input stops if costs and features have the same names", {
+    a = data.frame(a=1:5, c=rep.int(1, 5), d=rep.int(1, 5), f=rep.int(1, 5))
+    b = data.frame(a=1:5, x=rep.int(1, 5))
+
+    groups = list(c=c("c"), foo=c("d", "f"))
+    costs = list(groups=groups, values=data.frame(a=1:5, c=1:5, foo=1:5))
+
+    expect_error(input(a, b, costs=costs), "Some cost groups have the same names")
+})
+
 test_that("input warns about differing number of rows", {
     a = data.frame(a=c(1:6), b=rep.int(1, 6))
     b = data.frame(a=c(1:5), c=rep.int(1, 5))

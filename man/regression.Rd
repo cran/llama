@@ -53,7 +53,7 @@ to be minimized or not, as specified when creating the data structure though
 
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
-The \code{parallelMap} level is "llama-fold".
+The \code{parallelMap} level is "llama.fold".
 
 If \code{combine} is not null, it is assumed to be an mlr classifier and will be
 used to learn a model to predict the best algorithm given the original features

@@ -42,7 +42,7 @@ set(s).
 
 The evaluation across the training and test sets will be parallelized
 automatically if a suitable backend for parallel computation is loaded.
-The \code{parallelMap} level is "llama-fold".
+The \code{parallelMap} level is "llama.fold".
 
 If the given classifier supports case weights and \code{use.weights} is
 \code{TRUE}, the performance difference between the best and the worst algorithm
@@ -58,8 +58,8 @@ the same properties as the other ones and will be used to combine the ensemble
 predictions instead of majority voting. This classifier is passed the original
 features and the predictions of the classifiers in the ensemble.
 
-If all predictions of an underlying machine learning model are \code{NA}, the
-prediction will be \code{NA} for the algorithm and \code{-Inf} for the score.
+If the prediction of a stacked learner is \code{NA}, the prediction will
+\code{NA} for the score.
 
 If \code{save.models} is not \code{NA}, the models trained during evaluation are
 serialized into files. Each file contains a list with members \code{model} (the
@@ -76,9 +76,9 @@ saved in a different file.
  by \code{input}), the algorithm, the score of the algorithm, and the iteration
  (e.g. the number of the fold for cross-validation). More than one prediction
  may be made for each instance and iteration. The score corresponds to the
- number of classifiers that predicted the respective algorithm. If stacking is
- used, only the best algorithm for each algorithm-instance pair is predicted
- with a score of 1.}
+ number of classifiers that predicted the respective algorithm, or the sum of
+ probabilities that this classifier was the best. If stacking is used, the score
+ corresponds to the output of the stacked classifier.}
  \item{predictor}{a function that encapsulates the classifier learned on the
  \emph{entire} data set. Can be called with data for the same features with the
  same feature names as the training data to obtain predictions in the same
@@ -111,6 +111,9 @@ sum(successes(folds, res))
 res$predictor(satsolvers$data[satsolvers$features])
 
 res = classify(classifier=makeLearner("classif.svm"), data=folds)
+
+# use probabilities instead of labels
+res = classify(classifier=makeLearner("classif.randomForest", predict.type = "prob"), data=folds)
 
 # ensemble classification
 rese = classify(classifier=list(makeLearner("classif.J48"),

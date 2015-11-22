@@ -1,9 +1,12 @@
 trainTest <-
 function(data, trainpart = 0.6, stratify = FALSE) {
+    assertClass(data, "llama.data")
+    assertNumeric(trainpart)
+
     if(stratify) {
         stratifier = sapply(data$best, paste, collapse="-")
     } else {
-        stratifier = rep.int(T, nrow(data$data))
+        stratifier = rep.int(TRUE, nrow(data$data))
     }
 
     tmp = do.call(c, by(1:nrow(data$data), stratifier, function(x) {
@@ -12,8 +15,9 @@ function(data, trainpart = 0.6, stratify = FALSE) {
     }))
     parts = split(1:nrow(data$data), tmp)
 
-    newdata = c(data, list(train = list(parts[[1]]), test = list(parts[[2]])))
-    class(newdata) = "llama.data"
+    newdata = data
+    newdata$train = list(parts[[1]])
+    newdata$test = list(parts[[2]])
     attr(newdata, "hasSplits") = TRUE
     return(newdata)
 }

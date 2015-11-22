@@ -20,7 +20,7 @@ test_that("cluster finds best for cluster", {
     expect_equal(unique(res$predictions$id), 11:20)
     by(res$predictions, res$predictions$id, function(ss) {
         expect_equal(ss$algorithm, factor(algs, levels=algs))
-        expect_equal(ss$score, c(0, 10))
+        expect_equal(ss$score, c(0, 1))
     })
 })
 
@@ -38,7 +38,7 @@ test_that("cluster finds best by successes for cluster", {
     expect_equal(unique(res$predictions$id), 11:20)
     by(res$predictions, res$predictions$id, function(ss) {
         expect_equal(ss$algorithm, factor(c("b", "c")))
-        expect_equal(ss$score, c(10, 0))
+        expect_equal(ss$score, c(1, 0))
     })
 })
 
@@ -50,7 +50,7 @@ test_that("cluster returns predictor", {
     expect_equal(unique(preds$id), 1:10)
     by(preds, preds$id, function(ss) {
         expect_equal(ss$algorithm, factor(algs, levels=algs))
-        expect_equal(ss$score, c(0, 20))
+        expect_equal(ss$score, c(0, 1))
     })
 })
 
@@ -62,7 +62,7 @@ test_that("cluster returns predictor that works without IDs", {
     expect_equal(unique(preds$id), 1:10)
     by(preds, preds$id, function(ss) {
         expect_equal(ss$algorithm, factor(algs, levels=algs))
-        expect_equal(ss$score, c(0, 20))
+        expect_equal(ss$score, c(0, 1))
     })
 })
 
@@ -72,7 +72,7 @@ test_that("cluster takes list of clusterers", {
     expect_equal(unique(res$predictions$id), 11:20)
     by(res$predictions, res$predictions$id, function(ss) {
         expect_equal(ss$algorithm, factor(algs, levels=algs))
-        expect_equal(ss$score, c(0, 30))
+        expect_equal(ss$score, c(0, 3))
     })
 
     foldg$id = 1:10
@@ -80,7 +80,7 @@ test_that("cluster takes list of clusterers", {
     expect_equal(unique(preds$id), 1:10)
     by(preds, preds$id, function(ss) {
         expect_equal(ss$algorithm, factor(algs, levels=algs))
-        expect_equal(ss$score, c(0, 60))
+        expect_equal(ss$score, c(0, 3))
     })
 })
 

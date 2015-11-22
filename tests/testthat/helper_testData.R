@@ -69,3 +69,14 @@ attr(modelameas, "hasPredictions") = TRUE
 modelbmeas = list(predictions=rbind(cbind(bsmeas, id=1:5), cbind(bsmeas, id=6:10)))
 class(modelbmeas) = "llama.model"
 attr(modelbmeas, "hasPredictions") = TRUE
+
+foldone = data.frame(a=c(rep.int(0, 10)), b=c(rep.int(1, 10)), c=rep.int(1, 10))
+one = list(data=rbind(cbind(foldone, id=1:10), cbind(foldone, id=11:20)),
+         train=list(1:nrow(foldone)),
+         test=list(1:nrow(foldone) + nrow(foldone)),
+         features=c("c"), minimize=T,
+         performance=c("a", "b"),
+         ids=c("id"),
+         best=rep.int("a", 20))
+class(one) = "llama.data"
+attr(one, "hasSplits") = TRUE

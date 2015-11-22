@@ -1,9 +1,12 @@
 bsFolds <-
-function(data, nfolds = 10, stratify = FALSE) {
+function(data, nfolds = 10L, stratify = FALSE) {
+    assertClass(data, "llama.data")
+    assertInteger(nfolds)
+
     if(stratify) {
         stratifier = sapply(data$best, paste, collapse="-")
     } else {
-        stratifier = rep.int(T, nrow(data$data))
+        stratifier = rep.int(TRUE, nrow(data$data))
     }
 
     trainIdxs = lapply(1:nfolds, function(i) {
@@ -13,10 +16,9 @@ function(data, nfolds = 10, stratify = FALSE) {
         as.integer(unlist(tmp))
     })
 
-    newdata = c(data,
-            list(train = trainIdxs,
-                 test = lapply(trainIdxs, function(x) { setdiff(1:nrow(data$data), x) })))
-    class(newdata) = "llama.data"
+    newdata = data
+    newdata$train = trainIdxs
+    newdata$test = lapply(trainIdxs, function(x) { setdiff(1:nrow(data$data), x) })
     attr(newdata, "hasSplits") = TRUE
     return(newdata)
 }

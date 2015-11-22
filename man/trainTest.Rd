@@ -26,6 +26,8 @@ Partitions the data set into training and test set according to the specified
 fraction. The training and test index sets are added to the original data and
 returned. If requested, the distribution of the best algorithms in training and
 test set is approximately the same, i.e. the sets are stratified.
+
+If the data set has train and test partitions already, they are overwritten.
 }
 \value{
 \item{train}{a (one-element) list of index sets for training.}

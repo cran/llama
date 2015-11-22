@@ -185,3 +185,18 @@ test_that("perfScatterPlot", {
         xlab("J48") + ylab("single best")
     expect_false(is.null(p))
 })
+
+
+test_that("tune", {
+    skip.expensive()
+
+    ps = makeParamSet(makeIntegerParam("M", lower = 1, upper = 100))
+    design = generateRandomDesign(10, ps)
+    res = tuneModel(folds, classify, makeLearner("classif.J48"), design, parscores, nfolds = 3L, quiet = TRUE)
+
+    expect_equal(class(res), "llama.model")
+    expect_equal(attr(res, "type"), "classify")
+
+    expect_true(res$parvals$M >= 1 && res$parvals$M <= 100)
+    expect_true(all(sapply(res$inner.parvals, function(x) (x$M >= 1 && x$M <= 100))))
+})

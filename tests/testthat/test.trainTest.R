@@ -47,3 +47,14 @@ test_that("trainTest stratifies", {
     expect_equal(sum(d$best[dtt$test[[1]]]==0), 2)
     expect_equal(sum(d$best[dtt$test[[1]]]==1), 2)
 })
+
+test_that("trainTest replaces existing splits", {
+    d = list(data=data.frame(a=rep.int(0, 10)), best=rep.int(0, 10), train=c(1,1), test=c(1,1))
+    class(d) = "llama.data"
+
+    dtt = trainTest(d)
+    expect_equal(length(dtt$train), 1)
+    expect_equal(length(dtt$test), 1)
+    expect_equal(length(dtt$train[[1]]), 6)
+    expect_equal(length(dtt$test[[1]]), 4)
+})
