@@ -85,7 +85,6 @@ model learners.
 Lars Kotthoff
 }
 \examples{
-\dontrun{
 # features.csv looks something like
 # ID,width,height
 # 0,1.2,3
@@ -98,24 +97,23 @@ Lars Kotthoff
 # ID,alg1,alg2
 # 0,T,F
 # ...
-input(read.csv("features.csv"), read.csv("performance.csv"),
-    read.csv("success.csv"), costs=10)
+#input(read.csv("features.csv"), read.csv("performance.csv"),
+#    read.csv("success.csv"), costs=10)
 
 # costs.csv:
 # ID,width,height
 # 0,3,4.5
 # ...
-input(read.csv("features.csv"), read.csv("performance.csv"),
-    read.csv("success.csv"), costs=read.csv("costs.csv"))
+#input(read.csv("features.csv"), read.csv("performance.csv"),
+#    read.csv("success.csv"), costs=read.csv("costs.csv"))
 
 # costGroups.csv:
 # ID,group1,group2
 # 0,3,4.5
 # ...
-input(read.csv("features.csv"), read.csv("performance.csv"),
-    read.csv("success.csv"),
-    costs=list(groups=list(group1=c("height"), group2=c("width")),
-               values=read.csv("costGroups.csv")))
-}
+#input(read.csv("features.csv"), read.csv("performance.csv"),
+#    read.csv("success.csv"),
+#    costs=list(groups=list(group1=c("height"), group2=c("width")),
+#               values=read.csv("costGroups.csv")))
 }
 \keyword{ models }

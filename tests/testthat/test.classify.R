@@ -137,9 +137,16 @@ test_that("classify works with NA predictions", {
 })
 
 test_that("classify works with one class train data", {
-    # fails with --as-cran
+    # when run with --as-cran, this fails because the llama package that provides the classifier isn't installed
     skip.expensive()
-    res = classify(classifier=makeLearner("classif.knn"), one)
+    res = classify(classifier=makeLearner("classif.rpart"), one)
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, factor(c("a")))
+        expect_equal(ss$score, c(1))
+    })
+
+    res = classify(classifier=makeLearner("classif.rpart"), one)
     expect_equal(unique(res$predictions$id), 11:20)
     by(res$predictions, res$predictions$id, function(ss) {
         expect_equal(ss$algorithm, factor(c("a")))

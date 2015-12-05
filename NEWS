@@ -1,3 +1,7 @@
+llama_0.9.1:
+- fix bug that caused errors with learners that supports weights when only a
+  single class label is present
+
 llama_0.9:
 - stricter argument checking: the number of folds to partition in must be an
   integer
