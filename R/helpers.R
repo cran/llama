@@ -39,7 +39,7 @@ function() {
 
 makeRLearner.classif.constant = function() {
     makeRLearnerClassif(cl = "classif.constant", package="llama",
-        par.set=ParamHelpers::makeParamSet(), properties=c("numerics", "factors", "ordered", "weights", "oneclass"))
+        par.set=ParamHelpers::makeParamSet(), properties=c("numerics", "factors", "ordered", "weights", "oneclass", "multiclass", "missings"))
 }
 trainLearner.classif.constant = function(.learner, .task, .subset, .weights, ...) { }
 predictLearner.classif.constant = function(.learner, .model, .newdata, ...) {

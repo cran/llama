@@ -11,6 +11,19 @@ d = list(data=rbind(cbind(fold, id=1:10), cbind(fold, id=11:20)),
 class(d) = "llama.data"
 attr(d, "hasSplits") = TRUE
 
+fold.three = data.frame(a=rep.int(0, 10), b=c(rep.int(1, 5), rep.int(0, 5)),
+                  c=c(rep.int(0, 5), rep.int(1, 5)), d = rep.int(1, 10))
+d.three = list(data=rbind(cbind(fold.three, id=1:10), cbind(fold.three, id=11:20)),
+         train=list(1:nrow(fold.three)),
+         test=list(1:nrow(fold.three) + nrow(fold.three)),
+         features=c("a"),
+         ids=c("id"),
+         minimize=T,
+         performance=c("b", "c", "d"),
+         best=rep.int(c(rep.int("c", 5), rep.int("b", 5)), 2))
+class(d.three) = "llama.data"
+attr(d.three, "hasSplits") = TRUE
+
 
 folde = data.frame(a=c(rep.int(0, 5), rep.int(1, 5)),
                   b=c(rep.int(1, 5), rep.int(0, 5)),
@@ -70,12 +83,12 @@ modelbmeas = list(predictions=rbind(cbind(bsmeas, id=1:5), cbind(bsmeas, id=6:10
 class(modelbmeas) = "llama.model"
 attr(modelbmeas, "hasPredictions") = TRUE
 
-foldone = data.frame(a=c(rep.int(0, 10)), b=c(rep.int(1, 10)), c=rep.int(1, 10))
+foldone = data.frame(a=rep.int(1, 10), b=rep.int(2, 10), c=rep.int(1.5, 10), d=rep.int(1, 10))
 one = list(data=rbind(cbind(foldone, id=1:10), cbind(foldone, id=11:20)),
          train=list(1:nrow(foldone)),
          test=list(1:nrow(foldone) + nrow(foldone)),
-         features=c("c"), minimize=T,
-         performance=c("a", "b"),
+         features=c("d"), minimize=T,
+         performance=c("a", "b", "c"),
          ids=c("id"),
          best=rep.int("a", 20))
 class(one) = "llama.data"

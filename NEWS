@@ -1,3 +1,6 @@
+llama_0.9.2:
+- fix bug that caused errors in some pairwise classification cases
+
 llama_0.9.1:
 - fix bug that caused errors with learners that supports weights when only a
   single class label is present

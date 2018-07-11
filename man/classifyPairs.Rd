@@ -59,8 +59,8 @@ If the given classifier supports case weights and \code{use.weights} is
 \code{TRUE}, the performance difference between the best and the worst algorithm
 is passed as a weight for each instance.
 
-If all predictions of an underlying machine learning model are \code{NA}, the
-prediction will be \code{NA} for the score.
+If all predictions of an underlying machine learning model are \code{NA}, it
+will count as 0 towards the score.
 
 Training this model can take a very long time. Given \code{n} algorithms,
 \code{choose(n, 2)} models are trained and evaluated. This is significantly

@@ -44,6 +44,23 @@ test_that("regressionPairs raises error without train/test split", {
     expect_error(regressionPairs(testregressor, d))
 })
 
+test_that("regressionPairs works with three algorithms", {
+    res = regressionPairs(regressor=testregressor, d.three)
+    expect_equal(unique(res$predictions$id), 11:20)
+    by(res$predictions, res$predictions$id, function(ss) {
+        expect_equal(ss$algorithm, factor(c("c", "b", "d")))
+        expect_equal(ss$score, c(2, -1, -1))
+    })
+
+    fold$id = 1:10
+    preds = res$predictor(fold)
+    expect_equal(unique(preds$id), 1:10)
+    by(preds, preds$id, function(ss) {
+        expect_equal(ss$algorithm, factor(c("c", "b", "d")))
+        expect_equal(ss$score, c(2, -1, -1))
+    })
+})
+
 test_that("regressionPairs respects minimize", {
     fold = data.frame(a=rep.int(0, 10), best=rep.int("b", 10), foo=rep.int(2, 10), bar=rep.int(1, 10))
     d = list(data=rbind(cbind(fold, id=1:10), cbind(fold, id=11:20)),
