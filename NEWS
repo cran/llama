@@ -1,3 +1,6 @@
+llama_0.9.3:
+- fix R 4.0 compatiblity
+
 llama_0.9.2:
 - fix bug that caused errors in some pairwise classification cases
 

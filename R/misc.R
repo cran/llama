@@ -10,7 +10,7 @@ function(data=NULL) {
     bests = unlist(data$best)
     scores = rep.int(1, length(bests))
     scores[is.na(bests)] = 0
-    return(data.frame(ids, algorithm = bests, score = scores, iteration = 1))
+    return(data.frame(ids, algorithm = factor(bests), score = scores, iteration = 1))
 }
 class(vbs) = "llama.model"
 attr(vbs, "type") = "virtual best"
@@ -24,7 +24,7 @@ function(data=NULL) {
     }
     best = breakBestTies(data)
     ids = data$data[data$ids]
-    data.frame(ids, algorithm = names(sort(table(best), decreasing=T)[1]), score = 1, iteration = 1)
+    data.frame(ids, algorithm = factor(names(sort(table(best), decreasing=T)[1])), score = 1, iteration = 1)
 }
 class(singleBestByCount) = "llama.model"
 attr(singleBestByCount, "type") = "single best"
@@ -41,7 +41,7 @@ function(data=NULL, factor=10) {
     }
 
     best = names(sort(sapply(data$performance, function(x) {
-        prs = data.frame(data$data[,data$ids,drop=F], algorithm = x, score = 1, iteration = 1)
+        prs = data.frame(data$data[,data$ids,drop=F], algorithm = factor(x), score = 1, iteration = 1)
         model = list(predictions=prs, ids=c("id"))
         class(model) = "llama.model"
         attr(model, "hasPredictions") = TRUE
@@ -49,7 +49,7 @@ function(data=NULL, factor=10) {
         mean(parscores(data, model, factor=factor))
     })))[1]
     ids = data$data[data$ids]
-    data.frame(ids, algorithm = best, score = 1, iteration = 1)
+    data.frame(ids, algorithm = factor(best), score = 1, iteration = 1)
 }
 class(singleBestByPar) = "llama.model"
 attr(singleBestByPar, "type") = "single best"
@@ -66,7 +66,7 @@ function(data=NULL) {
     }
 
     best = names(sort(sapply(data$performance, function(x) {
-        prs = data.frame(data$data[,data$ids,drop=F], algorithm = x, score = 1, iteration = 1)
+        prs = data.frame(data$data[,data$ids,drop=F], algorithm = factor(x), score = 1, iteration = 1)
         model = list(predictions=prs, ids=c("id"))
         class(model) = "llama.model"
         attr(model, "hasPredictions") = TRUE
@@ -74,7 +74,7 @@ function(data=NULL) {
         mean(successes(data, model))
     }), decreasing=T))[1]
     ids = data$data[data$ids]
-    data.frame(ids, algorithm = best, score = 1, iteration = 1)
+    data.frame(ids, algorithm = factor(best), score = 1, iteration = 1)
 }
 class(singleBestBySuccesses) = "llama.model"
 attr(singleBestBySuccesses, "type") = "single best"
@@ -89,7 +89,7 @@ function(data=NULL) {
 
     best = names(sort(sapply(data$performance, function(x) { mean(data$data[,x]) }), decreasing=!data$minimize))[1]
     ids = data$data[data$ids]
-    data.frame(ids, algorithm = best, score = 1, iteration = 1)
+    data.frame(ids, algorithm = factor(best), score = 1, iteration = 1)
 }
 class(singleBest) = "llama.model"
 attr(singleBest, "type") = "single best"

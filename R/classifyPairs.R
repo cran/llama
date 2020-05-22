@@ -91,14 +91,14 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
             combinedpredictions = rbind.fill(lapply(1:nrow(preds), function(j) {
                 ss = preds[j,,drop=F]
                 ord = order(ss, decreasing = TRUE)
-                data.frame(ids[j,,drop=F], algorithm=names(ss)[ord], score=as.numeric(ss)[ord], iteration=i, row.names = NULL)
+                data.frame(ids[j,,drop=F], algorithm=factor(names(ss)[ord]), score=as.numeric(ss)[ord], iteration=i, row.names = NULL)
             }))
         } else {
             tmp = cbind(tmp.names = unlist(lapply(pairpredictions, rownames)), rbind.fill(pairpredictions))
             merged = ddply(tmp, "tmp.names", function(x) colSums(x[,-1], na.rm = TRUE))[-1]
             combinedpredictions = rbind.fill(lapply(1:nrow(merged), function(j) {
                 ord = order(merged[j,], decreasing = TRUE)
-                data.frame(ids[j,,drop=F], algorithm=names(merged)[ord], score=as.numeric(merged[j,])[ord], iteration=i, row.names = NULL)
+                data.frame(ids[j,,drop=F], algorithm=factor(names(merged)[ord]), score=as.numeric(merged[j,])[ord], iteration=i, row.names = NULL)
             }))
         }
         return(combinedpredictions)
@@ -117,7 +117,7 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
                 sapply(data$data[[x]] > data$data[[y]], function(z) { if(z) { x } else { y } })
             }
         }
-        labels = data.frame(target=factor(cmp(combns[1,i], combns[2,i]), levels = combns[,i]))
+        labels = data.frame(target=factor(cmp(combns[1,i], combns[2,i])))
         if(hasLearnerProperties(classifier, "weights") && use.weights) {
             task = makeClassifTask(id="classifyPairs", target="target", weights=abs(data$data[[combns[1,i]]] - data$data[[combns[2,i]]]), data=data.frame(labels, fs$features), fixup.data="quiet", check.data=FALSE)
         } else {
@@ -185,14 +185,14 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
             combinedpredictions =  rbind.fill(lapply(1:nrow(preds), function(j) {
                 ss = preds[j,,drop=F]
                 ord = order(ss, decreasing = TRUE)
-                data.frame(ids[j,,drop=F], algorithm=names(ss)[ord], score=as.numeric(ss)[ord], iteration=i, row.names = NULL)
+                data.frame(ids[j,,drop=F], algorithm=factor(names(ss)[ord]), score=as.numeric(ss)[ord], iteration=i, row.names = NULL)
             }))
         } else {
             tmp = cbind(tmp.names = unlist(lapply(pairpredictions, rownames)), rbind.fill(pairpredictions))
             merged = ddply(tmp, "tmp.names", function(x) colSums(x[,-1], na.rm = TRUE))[-1]
             combinedpredictions = rbind.fill(lapply(1:nrow(merged), function(j) {
                 ord = order(merged[j,], decreasing = TRUE)
-                data.frame(ids[j,,drop=F], algorithm=names(merged)[ord], score=as.numeric(merged[j,])[ord], iteration=i, row.names = NULL)
+                data.frame(ids[j,,drop=F], algorithm=factor(names(merged)[ord]), score=as.numeric(merged[j,])[ord], iteration=i, row.names = NULL)
             }))
         }
         return(combinedpredictions)

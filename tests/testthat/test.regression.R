@@ -88,28 +88,28 @@ test_that("regression works with NA predictions", {
     res = regression(natestregressor, d)
     expect_equal(unique(res$predictions$id), 11:20)
     by(res$predictions, res$predictions$id, function(ss) {
-        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$algorithm, factor(NA))
         expect_equal(ss$score, Inf)
     })
     fold$id = 1:10
     preds = res$predictor(fold)
     expect_equal(unique(preds$id), 1:10)
     by(preds, preds$id, function(ss) {
-        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$algorithm, factor(NA))
         expect_equal(ss$score, Inf)
     })
 
     res = regression(natestregressor, d, combine=natestclassifier)
     expect_equal(unique(res$predictions$id), 11:20)
     by(res$predictions, res$predictions$id, function(ss) {
-        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$algorithm, factor(NA))
         expect_equal(ss$score, Inf)
     })
     fold$id = 1:10
     preds = res$predictor(fold)
     expect_equal(unique(preds$id), 1:10)
     by(preds, preds$id, function(ss) {
-        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$algorithm, factor(NA))
         expect_equal(ss$score, Inf)
     })
 })

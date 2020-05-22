@@ -1,20 +1,20 @@
 Package: llama
 Type: Package
 Title: Leveraging Learning to Automatically Manage Algorithms
-Version: 0.9.2
-Date: 2018-07-11
+Version: 0.9.3
+Date: 2020-05-19
 Author: Lars Kotthoff [aut,cre],
     Bernd Bischl [aut],
     Barry Hurley [ctb],
     Talal Rahwan [ctb]
-Maintainer: Lars Kotthoff <larsko@cs.ubc.ca>
+Maintainer: Lars Kotthoff <larsko@uwyo.edu>
 Description: Provides functionality to train and evaluate algorithm selection models for portfolios.
-Depends: R (>= 2.10), mlr (>= 2.5)
+Depends: R (>= 4.0), mlr (>= 2.5)
 Imports: rJava, parallelMap, ggplot2, checkmate, BBmisc, plyr
 Suggests: testthat, ParamHelpers
 License: BSD_3_clause + file LICENSE
 URL: https://bitbucket.org/lkotthoff/llama
 NeedsCompilation: no
-Packaged: 2018-07-11 10:43:46 UTC; larsko
+Packaged: 2020-05-20 21:08:10 UTC; larsko
 Repository: CRAN
-Date/Publication: 2018-07-11 14:30:03 UTC
+Date/Publication: 2020-05-22 08:30:02 UTC

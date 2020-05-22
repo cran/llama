@@ -58,7 +58,7 @@ the same properties as the other ones and will be used to combine the ensemble
 predictions instead of majority voting. This classifier is passed the original
 features and the predictions of the classifiers in the ensemble.
 
-If the prediction of a stacked learner is \code{NA}, the prediction will
+If the prediction of a stacked learner is \code{NA}, the prediction will be
 \code{NA} for the score.
 
 If \code{save.models} is not \code{NA}, the models trained during evaluation are

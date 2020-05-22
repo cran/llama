@@ -36,7 +36,7 @@ test_that("virtual best works with NAs", {
     preds = vbs(d)
     expect_equal(nrow(preds), 1)
     by(preds, preds$id, function(ss) {
-        expect_equal(ss$algorithm, NA)
+        expect_equal(ss$algorithm, factor(NA))
         expect_equal(ss$score, 0)
     })
 })
@@ -215,12 +215,12 @@ test_that("predTable tabulates", {
     expect_equal(as.vector(tab2), c(2, 2))
     expect_equal(names(tab2), c("a", "b"))
 
-    preds = data.frame(id=1:3, algorithm=c("a", "a", "b"), score = 1, iteration=1)
+    preds = data.frame(id=1:3, algorithm=factor(c("a", "a", "b")), score = 1, iteration=1)
     tab3 = predTable(preds)
     expect_equal(as.vector(tab3), c(2, 1))
     expect_equal(names(tab3), c("a", "b"))
 
-    preds = data.frame(id=c(1, 2, 3, 3), algorithm=c("a", "a", "a", "b"), score = 1, iteration=1)
+    preds = data.frame(id=c(1, 2, 3, 3), algorithm=factor(c("a", "a", "a", "b")), score = 1, iteration=1)
     tab4 = predTable(preds)
     expect_equal(as.vector(tab4), 3)
     expect_equal(names(tab4), "a")
@@ -231,7 +231,7 @@ test_that("predTable tabulates", {
     i = 0
     model = function(data) {
         i <<- i + 1
-        data.frame(id=data$data$id, algorithm="a", score=1, iteration=i)
+        data.frame(id=data$data$id, algorithm=factor("a"), score=1, iteration=i)
     }
     class(model) = "llama.model"
     attr(model, "hasPredictions") = FALSE

@@ -116,7 +116,7 @@ test_that("classifyPairs works with NA predictions", {
 })
 
 test_that("classifyPairs works with one class train data", {
-    # when run with --as-cran, this fails because the llama package that provides the classifier isn't installed
+    # when run with --as-cran, this fails because the package that provides the classifier isn't installed
     skip.expensive()
     res = classifyPairs(classifier=makeLearner("classif.rpart"), one)
     expect_equal(unique(res$predictions$id), 11:20)

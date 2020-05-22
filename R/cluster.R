@@ -66,7 +66,7 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
             for(k in 1:length(preds)) {
                 x = preds[k]
                 if(is.na(x)) {
-                    ensemblepredictions[[j]][[k]] = data.frame(algorithm = NA, score = worstScore)
+                    ensemblepredictions[[j]][[k]] = data.frame(algorithm = factor(NA), score = worstScore)
                 } else {
                     ensemblepredictions[[j]][[k]] = best[[which(names(best)==x)]]
                 }
@@ -88,17 +88,17 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
             preds = getPredictionResponse(predict(combinedmodel, newdata=cbind(tsf$features, data.frame(featureData))))
             combinedpredictions = rbind.fill(lapply(1:length(preds), function(j) {
                 if(all(is.na(preds[j,drop=F]))) {
-                    data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=i, row.names = NULL)
+                    data.frame(ids[j,,drop=F], algorithm=factor(NA), score=worstScore, iteration=i, row.names = NULL)
                 } else {
                     tab = table(preds[j,drop=F])
-                    data.frame(ids[j,,drop=F], algorithm=names(tab), score=as.vector(tab), iteration=i, row.names = NULL)
+                    data.frame(ids[j,,drop=F], algorithm=factor(names(tab)), score=as.vector(tab), iteration=i, row.names = NULL)
                 }
             }))
         } else {
             combinedpredictions = rbind.fill(lapply(1:nrow(ids), function(j) {
                 df = rbind.fill(lapply(ensemblepredictions, function(x) { x[[j]] }))
                 if(all(is.na(df$algorithm))) {
-                    data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=i, row.names = NULL)
+                    data.frame(ids[j,,drop=F], algorithm=factor(NA), score=worstScore, iteration=i, row.names = NULL)
                 } else {
                     df = aggregate(data=df, as.formula(paste(predNames[2], predNames[1], sep="~")), sum)
                     df$iteration = i
@@ -120,7 +120,7 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
             lapply(1:length(preds), function(k) {
                 x = preds[k]
                 if(is.na(x)) {
-                    data.frame(algorithm = NA, score = worstScore)
+                    data.frame(algorithm = factor(NA), score = worstScore)
                 } else {
                     best[[which(names(best)==x)]]
                 }
@@ -157,17 +157,17 @@ function(clusterer=NULL, data=NULL, bestBy="performance", pre=function(x, y=NULL
             preds = getPredictionResponse(predict(combinedmodel, newdata=cbind(tsf$features, data.frame(featureData))))
             combinedpredictions = rbind.fill(lapply(1:length(preds), function(j) {
                 if(all(is.na(preds[j,drop=F]))) {
-                    data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=1, row.names = NULL)
+                    data.frame(ids[j,,drop=F], algorithm=factor(NA), score=worstScore, iteration=1, row.names = NULL)
                 } else {
                     tab = table(preds[j,drop=F])
-                    data.frame(ids[j,,drop=F], algorithm=names(tab), score=as.vector(tab), iteration=1, row.names = NULL)
+                    data.frame(ids[j,,drop=F], algorithm=factor(names(tab)), score=as.vector(tab), iteration=1, row.names = NULL)
                 }
             }))
         } else {
             combinedpredictions = rbind.fill(lapply(1:nrow(ids), function(j) {
                 df = rbind.fill(lapply(ensemblepredictions, function(x) { x[[j]] }))
                 if(all(is.na(df$algorithm))) {
-                    data.frame(ids[j,,drop=F], algorithm=NA, score=worstScore, iteration=1, row.names = NULL)
+                    data.frame(ids[j,,drop=F], algorithm=factor(NA), score=worstScore, iteration=1, row.names = NULL)
                 } else {
                     df = aggregate(data=df, as.formula(paste(predNames[2], predNames[1], sep="~")), sum)
                     df$iteration = 1
