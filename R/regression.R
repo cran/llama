@@ -60,7 +60,7 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
                 if(all(is.na(performancePredictions[j,]))) {
                     data.frame(ids[j,,drop=F], algorithm=factor(NA), score=worstScore, iteration=i, row.names = NULL)
                 } else {
-                    x = sort(performancePredictions[j,,drop=F], decreasing = !data$minimize)
+                    x = sort(unlist(performancePredictions[j,,drop=F]), decreasing = !data$minimize)
                     data.frame(ids[j,,drop=F], algorithm=factor(names(x)), score=unlist(x), iteration=i, row.names = NULL)
                 }
             }))
@@ -117,7 +117,7 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
                 if(all(is.na(performancePredictions[j,]))) {
                     data.frame(ids[j,,drop=F], algorithm=factor(NA), score=worstScore, iteration=1, row.names = NULL)
                 } else {
-                    x = sort(performancePredictions[j,], decreasing = !data$minimize)
+                    x = sort(unlist(performancePredictions[j,]), decreasing = !data$minimize)
                     data.frame(ids[j,,drop=F], algorithm=factor(names(x)), score=unlist(x), iteration=1, row.names = NULL)
                 }
             }))

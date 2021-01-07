@@ -84,13 +84,13 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
             }
             combinedpredictions = rbind.fill(lapply(1:nrow(preds), function(j) {
                 ss = preds[j,,drop=F]
-                ord = order(ss, decreasing = TRUE)
+                ord = order(unlist(ss), decreasing = TRUE)
                 data.frame(ids[j,,drop=F], algorithm=factor(names(ss)[ord]), score=as.numeric(ss)[ord], iteration=i, row.names = NULL)
             }))
         } else {
             merged = Reduce('+', ensemblepredictions)
             combinedpredictions = rbind.fill(lapply(1:nrow(merged), function(j) {
-                ord = order(merged[j,], decreasing = TRUE)
+                ord = order(unlist(merged[j,]), decreasing = TRUE)
                 data.frame(ids[j,,drop=F], algorithm=factor(names(merged)[ord]), score=as.numeric(merged[j,])[ord], iteration=i, row.names = NULL)
             }))
         }
@@ -165,13 +165,13 @@ function(classifier=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) 
             }
             combinedpredictions = rbind.fill(lapply(1:nrow(preds), function(j) {
                 ss = preds[j,,drop=F]
-                ord = order(ss, decreasing = TRUE)
+                ord = order(unlist(ss), decreasing = TRUE)
                 data.frame(ids[j,,drop=F], algorithm=factor(names(ss)[ord]), score=as.numeric(ss)[ord], iteration=i, row.names = NULL)
             }))
         } else {
             merged = Reduce('+', ensemblepredictions)
             combinedpredictions = rbind.fill(lapply(1:nrow(merged), function(j) {
-                ord = order(merged[j,], decreasing = TRUE)
+                ord = order(unlist(merged[j,]), decreasing = TRUE)
                 data.frame(ids[j,,drop=F], algorithm=factor(names(merged)[ord]), score=as.numeric(merged[j,])[ord], iteration=i, row.names = NULL)
             }))
         }

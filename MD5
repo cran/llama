@@ -1,11 +1,11 @@
-b244deb8eb1e3068a7ae4bc41ec0450f *DESCRIPTION
-6b4fdcd0f6d18e4635d7ea2656f5e959 *LICENSE
+f2aed0db66df8fe9877501eef5ea2659 *DESCRIPTION
+6317175f018e05cd16f1ddaba4a26c5c *LICENSE
 b6ae228f4f70abed55116ff88629d458 *NAMESPACE
-18743cad301d24ba18fa4cce8b9ea982 *NEWS
+92fc3925ce9feb528261b89cc35d227a *NEWS
 75af90f1c512eeb8dbece51250b062d1 *R/analysis.R
 0378c26685fb2d71bae03b741aefe95f *R/bsFolds.R
-c30cff5456efd42757c624884f0b7bff *R/classify.R
-956c1f9fbc1bc9ef9959cc025fa82dc3 *R/classifyPairs.R
+597abb8c1af35013eafb5e2ff0b5c693 *R/classify.R
+a47d7d6924d1c72ab9abaebc1f61e84b *R/classifyPairs.R
 68fa623ad9aa4a991dafa55842fa7e32 *R/cluster.R
 4634e945f7d18b7282c4f71fccf57d80 *R/cvFolds.R
 b4f7b162433c89ede72c97007fa70f3a *R/helpers.R
@@ -16,7 +16,7 @@ b8e2a9f3b9cfb0bf2d48e44bb8ae10fe *R/misclassificationPenalties.R
 7da3c46addefe492c1709fa57aba1d4e *R/normalize.R
 fd560a2fd34366af44f127eee85ff66c *R/parscores.R
 c45b0c263af8a6118764af8700e13bc2 *R/plot.R
-43709c5412d147cee144c01172326060 *R/regression.R
+ff45130ab357d63969dfce62a2d271e0 *R/regression.R
 fb1a4f040dfd35d554af677e5d4f1731 *R/regressionPairs.R
 5ba2552095e86b9e6fded09c63cb9e28 *R/successes.R
 75d4fb59a01a152f507a4ad851ca5752 *R/trainTest.R
@@ -40,7 +40,7 @@ e582e82df26ffa6405c3dfa047c71a25 *man/cvFolds.Rd
 d37632eed16a500825a7f73e5bd92e04 *man/helpers.Rd
 d047fc023bcea590cfd5fcd76d353647 *man/imputeCensored.Rd
 b37ff04f66b53b3a415f7075e186c5ab *man/input.Rd
-891023e284fb3d3936bb2849fd408ce9 *man/llama-package.Rd
+0e736866acb1c4407c6ac326b9bab8b0 *man/llama-package.Rd
 ca281b18230b518b46b9c90bb2cba8fa *man/misc.Rd
 360214b5b37e4754aaf1610b34f89fdf *man/misclassificationPenalties.Rd
 b8a40bc4a6392d88c70818dd25b0085e *man/normalize.Rd

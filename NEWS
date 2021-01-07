@@ -1,3 +1,6 @@
+llama_0.9.4:
+- R devel compatiblity
+
 llama_0.9.3:
 - fix R 4.0 compatiblity
 

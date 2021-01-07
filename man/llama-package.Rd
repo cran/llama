@@ -36,23 +36,22 @@ evaluate the performance of the learned models are provided.
 LLAMA uses the mlr package to access the implementation of machine learning
 algorithms in R.
 
-The model building functions are using the \code{parallelMap} package
-(\url{https://github.com/berndbischl/parallelMap}) to parallelize across the
-data partitions (e.g. cross-validation folds) with level "llama.fold" and
-"llama.tune" for tuning. By default, everything is run sequentially. By loading
-a suitable backend (e.g. through \code{parallelStartSocket(2)} for
-parallelization across 2 CPUs using sockets), the model building will be
-parallelized automatically and transparently. Note that this does \emph{not}
-mean that all machine learning algorithms used for building models can be
-parallelized safely. For functions that are not thread safe, use
-\code{parallelStartSocket} to run in separate processes.
+The model building functions are using the \code{parallelMap} package to
+parallelize across the data partitions (e.g. cross-validation folds) with level
+"llama.fold" and "llama.tune" for tuning. By default, everything is run
+sequentially. By loading a suitable backend (e.g. through
+\code{parallelStartSocket(2)} for parallelization across 2 CPUs using sockets),
+the model building will be parallelized automatically and transparently. Note
+that this does \emph{not} mean that all machine learning algorithms used for
+building models can be parallelized safely. For functions that are not thread
+safe, use \code{parallelStartSocket} to run in separate processes.
 }
 \author{
 Lars Kotthoff, Bernd Bischl
 
 contributions by Barry Hurley, Talal Rahwan
 
-Maintainer: Lars Kotthoff <larsko@cs.ubc.ca>
+Maintainer: Lars Kotthoff <larsko@uwyo.edu>
 }
 \references{
 Kotthoff, L. (2013)
