@@ -6,7 +6,7 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=NULL) {
     if(is.null(data$success)) {
         stop("Need successes to calculate PAR scores!")
     }
-
+    
     if(is.null(addCosts)) {
         ac = attr(model, "addCosts")
         if(is.null(ac) || ac == TRUE) {
@@ -15,7 +15,7 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=NULL) {
             addCosts = FALSE
         }
     }
-
+    
     hp = attr(model, "hasPredictions")
     if(is.null(hp) || hp != TRUE) {
         if(length(data$test) > 0) {
@@ -30,12 +30,12 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=NULL) {
     } else {
         predictions = model$predictions
     }
-
+    
     if(is.null(timeout)) {
         # if timeout value wasn't given, assume maximum from data set
         timeout = max(data$data[data$performance])
     }
-
+    
     if(addCosts || !is.null(data$costs)) {
         if(is.null(data$costGroups)) {
             usedFeatures = intersect(data$cost, sapply(data$features, function(x) { paste(x, "cost", sep="_") }))
@@ -43,16 +43,38 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=NULL) {
             usedFeatures = subset(data$cost, sapply(data$cost, function(x) { length(intersect(data$costGroups[[x]], data$features)) > 0 }))
         }
     }
-
-    perfs = data$data[data$performance]
-    successes = data$data[data$success]
+    
+    if(is.null(data$algorithmFeatures)) {
+        perfs = data$data[data$performance]
+        successes = data$data[data$success]
+    } else {
+        d = data$data[c(data$ids, data$algos, data$performance)]
+        perfs = convertLongToWide(data=d, timevar=data$algos, idvar=data$ids, prefix=paste(data$performance,".",sep=""))
+        perfs = perfs[unique(data$data[[data$algos]])]
+        
+        d = data$data[c(data$ids, data$algos, data$success)]
+        successes = convertLongToWide(data=d, timevar=data$algos, idvar=data$ids, prefix=paste(data$success,".",sep=""))
+        successes = successes[unique(data$data[[data$algos]])]
+        colnames(successes) = paste(colnames(successes), data$success, sep="_")
+    }
+    
     if(!addCosts || is.null(data$cost)) {
         costs = rep.int(0, nrow(perfs))
     } else {
         costs = apply(data$data[usedFeatures], 1, sum)
     }
-    predictions$iid = match(do.call(paste, predictions[data$ids]), do.call(paste, data$data[data$ids]))
-    predictions$pid = match(predictions$algorithm, data$performance)
+    
+    if(is.null(data$algorithmFeatures)) {
+        predictions$iid = match(do.call(paste, predictions[data$ids]), do.call(paste, data$data[data$ids]))
+        predictions$pid = match(predictions$algorithm, data$performance)
+    } else {
+        d = data$data[c(data$ids, data$algos, data$performance)]
+        d = reshape(d, direction = "wide", timevar = data$algos, idvar = data$ids)
+        colnames(d) = gsub(paste(data$performance,".",sep=""), "", colnames(d))
+        predictions$iid = match(do.call(paste, predictions[data$ids]), do.call(paste, d[data$ids]))
+        predictions$pid = match(predictions$algorithm, unique(data$data[[data$algos]]))
+    }
+    
     predictions$score = apply(predictions, 1, function(x) {
         pid = as.numeric(x[["pid"]])
         if(is.na(pid)) {
@@ -66,8 +88,10 @@ function(data=NULL, model=NULL, factor=10, timeout=NULL, addCosts=NULL) {
             score
         }
     })
+    
     agg = aggregate(as.formula(paste("score~", paste(c(data$ids, "iteration"), sep="+", collapse="+"))), predictions, function(ss) { ss[1] })
     agg$score
 }
 class(parscores) = "llama.metric"
 attr(parscores, "minimize") = TRUE
+

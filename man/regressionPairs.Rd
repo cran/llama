@@ -5,8 +5,8 @@ Regression model for pairs of algorithms
 }
 \description{
 Builds regression models for each pair of algorithms that predict the
-performance difference based on the features of the problem. The sum over all
-pairs that involve a particular algorithm is aggregated as the score of the
+performance difference based on the features of the problem and optionally features of the algorithms. 
+The sum over all pairs that involve a particular algorithm is aggregated as the score of the
 algorithm.
 }
 \usage{
@@ -42,14 +42,18 @@ regressionPairs(regressor = NULL, data = NULL,
 }
 \details{
 \code{regressionPairs} takes the training and test sets in \code{data} and
-processes it using \code{pre} (if supplied). \code{regressor} is called to
-induce a regression model for each pair of algorithms to predict the performance
+processes it using \code{pre} (if supplied). If no algorithm features are provided, 
+\code{regressor} is called to induce a regression model for each pair of 
+algorithms to predict the performance difference between them. 
+When algorithm features are present, \code{regressor} is called to
+induce one regression model for all pairs of algorithms to predict the performance 
 difference between them. If \code{combine} is not supplied, the best overall
 algorithm is determined by summing the performance differences over all pairs
 for each algorithm and ranking them by this sum. The algorithm with the largest
 value is chosen. If it is supplied, it is assumed to be an mlr classifier. This
 classifier is passed the original features and the predictions for each pair of
-algorithms. If the classifier supports weights and \code{use.weights} is
+algorithms. \code{combine} option is currently not supported with algorithm features.
+If the classifier supports weights and \code{use.weights} is
 \code{TRUE}, the performance difference between the best and the worst algorithm
 is passed as weight.
 
@@ -65,7 +69,8 @@ The \code{parallelMap} level is "llama.fold".
 Training this model can take a very long time. Given \code{n} algorithms,
 \code{choose(n, 2) * n} models are trained and evaluated. This is significantly
 slower than the other approaches that train a single model or one for each
-algorithm.
+algorithm. Even with algorithmic features present, when only a single model is trained, 
+the process still takes a long time due to the amount of data. 
 
 If all predictions of an underlying machine learning model are \code{NA}, the
 prediction will be \code{NA} for the algorithm and \code{-Inf} for the score if
@@ -121,3 +126,4 @@ model = regressionPairs(regressor=makeLearner("regr.lm"), data=folds,
 }
 }
 \keyword{ models }
+

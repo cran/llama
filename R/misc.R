@@ -6,7 +6,14 @@ function(data=NULL) {
     }
     lens = sapply(data$best, length)
     idxs = unlist(lapply(1:length(lens), function(i) { rep.int(i, lens[i]) }))
-    ids = data$data[idxs,data$ids,drop=F]
+    if(is.null(data$algorithmFeatures)) {
+        ids = data$data[idxs,data$ids,drop=F]
+    } else {
+        ids = unique(data$data[[data$ids]])[idxs]
+        ids = data.frame(ids)
+        colnames(ids) = data$ids
+    }
+    
     bests = unlist(data$best)
     scores = rep.int(1, length(bests))
     scores[is.na(bests)] = 0
@@ -23,7 +30,12 @@ function(data=NULL) {
         stop("Need data to determine single best!")
     }
     best = breakBestTies(data)
-    ids = data$data[data$ids]
+    if(is.null(data$algorithmFeatures)) {
+        ids = data$data[data$ids]
+    } else { 
+        best = best[seq(1, length(best), length(unique(data$data[[data$algos]])))]
+        ids = unique(data$data[data$ids]) 
+    }
     data.frame(ids, algorithm = factor(names(sort(table(best), decreasing=T)[1])), score = 1, iteration = 1)
 }
 class(singleBestByCount) = "llama.model"
@@ -39,16 +51,28 @@ function(data=NULL, factor=10) {
     if(is.null(data$success)) {
         stop("Need successes to compute PAR scores.")
     }
-
-    best = names(sort(sapply(data$performance, function(x) {
+    if(is.null(data$algorithmFeatures)) {
+        algos = data$performance
+    } else {
+        algos = unique(data$data[[data$algos]])
+    }
+    
+    best = names(sort(sapply(algos, function(x) {
         prs = data.frame(data$data[,data$ids,drop=F], algorithm = factor(x), score = 1, iteration = 1)
+        if(!is.null(data$algorithmFeatures)) {
+            prs = unique(prs)
+        }
         model = list(predictions=prs, ids=c("id"))
         class(model) = "llama.model"
         attr(model, "hasPredictions") = TRUE
         attr(model, "addCosts") = FALSE
         mean(parscores(data, model, factor=factor))
     })))[1]
-    ids = data$data[data$ids]
+    if(is.null(data$algorithmFeatures)) {
+        ids = data$data[data$ids]
+    } else {
+        ids = unique(data$data[data$ids])
+    }
     data.frame(ids, algorithm = factor(best), score = 1, iteration = 1)
 }
 class(singleBestByPar) = "llama.model"
@@ -64,16 +88,28 @@ function(data=NULL) {
     if(is.null(data$success)) {
         stop("Need successes to compute successes.")
     }
-
-    best = names(sort(sapply(data$performance, function(x) {
+    if(is.null(data$algorithmFeatures)) {
+        algos = data$performance
+    } else {
+        algos = unique(data$data[[data$algos]])
+    }
+    
+    best = names(sort(sapply(algos, function(x) {
         prs = data.frame(data$data[,data$ids,drop=F], algorithm = factor(x), score = 1, iteration = 1)
+        if(!is.null(data$algorithmFeatures)) {
+            prs = unique(prs)
+        }
         model = list(predictions=prs, ids=c("id"))
         class(model) = "llama.model"
         attr(model, "hasPredictions") = TRUE
         attr(model, "addCosts") = FALSE
         mean(successes(data, model))
     }), decreasing=T))[1]
-    ids = data$data[data$ids]
+    if(is.null(data$algorithmFeatures)) {
+        ids = data$data[data$ids]
+    } else {
+        ids = unique(data$data[data$ids])
+    }
     data.frame(ids, algorithm = factor(best), score = 1, iteration = 1)
 }
 class(singleBestBySuccesses) = "llama.model"
@@ -86,10 +122,16 @@ function(data=NULL) {
     if(is.null(data)) {
         stop("Need data to determine single best!")
     }
-
-    best = names(sort(sapply(data$performance, function(x) { mean(data$data[,x]) }), decreasing=!data$minimize))[1]
-    ids = data$data[data$ids]
+    
+    if(is.null(data$algorithmFeatures)) {
+        best = names(sort(sapply(data$performance, function(x) { mean(data$data[,x]) }), decreasing=!data$minimize))[1]
+        ids = data$data[data$ids]
+    } else {
+        best = names(sort(sapply(unique(data$data[[data$algos]]), function(x) { mean(data$data[data$data[[data$algos]] == x, data$performance]) }), decreasing=!data$minimize))[1]
+        ids = unique(data$data[data$ids])
+    }
     data.frame(ids, algorithm = factor(best), score = 1, iteration = 1)
+    
 }
 class(singleBest) = "llama.model"
 attr(singleBest, "type") = "single best"
@@ -97,21 +139,54 @@ attr(singleBest, "hasPredictions") = FALSE
 attr(singleBest, "addCosts") = FALSE
 
 breakBestTies <-
-function(data=NULL, fold=NULL) {
+function(data=NULL, fold=NULL, pairs=FALSE) {
     if(is.null(data)) {
         stop("Need data to break ties!")
     }
-
-    if(is.null(fold)) {
-        perfs = data$data[data$performance]
-    } else {
-        perfs = data$data[data$train[[fold]],][data$performance]
-    }
-    order = names(sort(sapply(perfs, mean), decreasing=!data$minimize))
+    
     optfun = if(data$minimize) { which.min } else { which.max }
-    best = factor(apply(perfs[order], 1, function(x) { order[optfun(unlist(x))] }))
+    if(!is.null(data$algorithmFeatures)) {
+        if(is.null(fold)) {
+            perfs = data$data[c(data$performance, data$algos, data$ids)]
+        } else {
+            perfs = data$data[data$train[[fold]],][c(data$performance, data$algos, data$ids)]
+        }
+        if(pairs) {
+            if(is.null(fold)) {
+                perfs = data$data[c(data$performance, data$algos, data$ids)]
+            } else {
+                perfs = data$data[data$train[[fold]],][c(data$performance, data$algos, data$ids)]
+            }
+            combns = combn(unique(data$data[[data$algos]]), 2)
+            values = lapply(1:ncol(combns), function(j) {
+                p = perfs[perfs[[data$algos]] == combns[1,j], ]
+                return(p = p)
+            })
+            perfs = as.data.frame(rbindlist(lapply(values, function(x) { x })))
+        }
+        best = factor(sapply(perfs[[data$ids]], function(x) { order=perfs[perfs[[data$ids]]==x, data$algos]; order[optfun(unlist(perfs[perfs[[data$ids]]==x, data$performance]))] }))
+    } else {
+        if(is.null(fold)) {
+            perfs = data$data[data$performance]
+        } else {
+            perfs = data$data[data$train[[fold]],][data$performance]
+        }
+        order = names(sort(sapply(perfs, mean), decreasing=!data$minimize))
+        best = factor(apply(perfs[order], 1, function(x) { order[optfun(unlist(x))] }))
+    }
+    
     names(best) = NULL
     return(best)
+}
+
+convertLongToWide <- 
+function(data=NULL, timevar=NULL, idvar=NULL, prefix=NULL, remove.id=TRUE) {
+    data = reshape(data, direction = "wide", timevar = timevar, idvar = idvar)
+    colnames(data) = gsub(prefix, "", colnames(data))
+    if(remove.id) {
+        data[[idvar]] = NULL
+    }
+    return(data)
 }
 
 predTable <-
@@ -128,3 +203,4 @@ function(predictions=NULL, bestOnly=TRUE) {
     }
     sort(table(algorithms), decreasing = TRUE)
 }
+

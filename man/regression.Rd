@@ -5,7 +5,7 @@ Regression model
 }
 \description{
 Build a regression model that predicts the algorithm to use based on the
-features of the problem.
+features of the problem and optionally features of the algorithms.
 }
 \usage{
 regression(regressor = NULL, data = NULL,
@@ -45,10 +45,12 @@ regression(regressor = NULL, data = NULL,
 }
 \details{
 \code{regression} takes \code{data} and processes it using \code{pre} (if
-supplied). \code{regressor} is called to induce separate regression models for
-each of the algorithms to predict its performance. The best algorithm is
+supplied). If no algorithm features are provided, \code{regressor} is called to induce separate regression models for
+each of the algorithms to predict its performance. When algorithm features are present, 
+\code{regressor} is called to induce one regression model for all algorithms to predict their performance.
+The best algorithm is
 determined from the predicted performances by examining whether performance is
-to be minimized or not, as specified when creating the data structure though
+to be minimized or not, as specified when creating the data structure through
 \code{input}.
 
 The evaluation across the training and test sets will be parallelized
@@ -57,7 +59,8 @@ The \code{parallelMap} level is "llama.fold".
 
 If \code{combine} is not null, it is assumed to be an mlr classifier and will be
 used to learn a model to predict the best algorithm given the original features
-and the performance predictions for the individual algorithms. If this
+and the performance predictions for the individual algorithms. \code{combine} option
+is currently not supported with algorithm features. If this
 classifier supports weights and \code{use.weights} is \code{TRUE}, they will be
 passed as the difference between the best and the worst algorithm. Optionally,
 \code{expand} can be used to supply a function that will modify the predictions
@@ -132,3 +135,4 @@ ress = regression(regressor=makeLearner("regr.ksvm"),
 }
 }
 \keyword{ regression }
+

@@ -24,11 +24,13 @@ algorithms (\code{classifyPairs}) creates a classification model for each pair
 of algorithms that predicts which one is better and aggregates these predictions
 to determine the best overall algorithm. Clustering (\code{cluster}) clusters
 the problems to solve and assigns the best algorithm to each cluster. Regression
-(\code{regression}) trains separate models for all available algorithms,
-predicts the performance on a problem independently and chooses the algorithm
+(\code{regression}) trains a separate or single model (depending on the types of features available)
+for all algorithms, predicts the performance on a problem independently and chooses the algorithm
 with the best predicted performance. Regression of pairs of algorithms
 (\code{regressionPairs}) is similar to \code{classifyPairs}, but predicts the
-performance difference between each pair of algorithms.
+performance difference between each pair of algorithms. Similar to \code{regression}, 
+\code{regressionPairs} can also build a single model for all pairs of algorithms, 
+depending on the types of features available to the function. 
 
 Various functions to split the data into training and test set(s) and to
 evaluate the performance of the learned models are provided.
@@ -49,7 +51,7 @@ safe, use \code{parallelStartSocket} to run in separate processes.
 \author{
 Lars Kotthoff, Bernd Bischl
 
-contributions by Barry Hurley, Talal Rahwan
+contributions by Barry Hurley, Talal Rahwan, Damir Pulatov
 
 Maintainer: Lars Kotthoff <larsko@uwyo.edu>
 }
@@ -88,3 +90,4 @@ model = regression(regressor=makeLearner("regr.lm"), data=folds)
 print(sum(successes(folds, model)))
 }
 }
+
