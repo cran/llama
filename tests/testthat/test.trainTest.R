@@ -14,6 +14,7 @@ test_that("trainTest splits", {
                   algorithmFeatures=c("f"),
                   ids=c("id"),
                   algos=c("algo"),
+                  algorithmNames=c("a1", "a2"), 
                   best=rep.int("a1", 20))
     class(d.algo) = "llama.data"
     
@@ -39,6 +40,7 @@ test_that("trainTest splits with best list", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))),
                   algorithmFeatures=c("f"),
+                  algorithmNames=c("a1", "a2"),
                   ids=c("id"),
                   algos=c("algo"),
                   best=rep.int("a1", 20))
@@ -65,6 +67,7 @@ test_that("trainTest allows to specify split ratio", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))),
                   algorithmFeatures=c("f"),
+                  algorithmNames=c("a1", "a2"),
                   ids=c("id"),
                   algos=c("algo"),
                   best=rep.int("a1", 20))
@@ -95,7 +98,7 @@ test_that("trainTest stratifies", {
     # same test with algorithm features
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))), algorithmFeatures=c("f"), ids=c("id"),
-                             algos=c("algo"), best=c(rep.int(0, 10), rep.int(1, 10)))
+                             algorithmNames=c("a1", "a2"), algos=c("algo"), best=c(rep.int(0, 10), rep.int(1, 10)))
     class(d.algo) = "llama.data"
     
     dtt.algo = trainTest(d.algo, stratify = T)
@@ -123,7 +126,7 @@ test_that("trainTest replaces existing splits", {
     # same test with algorithm features
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))), algorithmFeatures=c("f"), ids=c("id"),
-                             algos=c("algo"), best=rep.int("a1", 20),
+                             algorithmNames=c("a1", "a2"), algos=c("algo"), best=rep.int("a1", 20),
                              train=c(1,1), test=c(1,1))
     class(d.algo) = "llama.data"
     
@@ -137,7 +140,7 @@ test_that("trainTest replaces existing splits", {
 test_that("trainTest with algorithm features includes all algorithms for each instance", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))), algorithmFeatures=c("f"), ids=c("id"),
-                  algos=c("algo"))
+                             algorithmNames=c("a1", "a2"), algos=c("algo"))
     class(d.algo) = "llama.data"
     
     dtt.algo = trainTest(d.algo)

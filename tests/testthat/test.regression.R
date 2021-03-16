@@ -1,8 +1,8 @@
 test_that("regression predicts", {
     res = regression(testregressor, d)
-    expect_equal(unique(res$predictions$id), 11:20)
-    by(res$predictions, res$predictions$id, function(ss) {
-        expect_equal(ss$algorithm, factor(c("c", "b")))
+    expect_equal(unique(res$predictions$id), 11:20) 
+    by(res$predictions, res$predictions$id, function(ss) { 
+        expect_equal(ss$algorithm, factor(c("c", "b"))) 
         expect_equal(ss$score, c(0, 1))
     })
     
@@ -10,8 +10,10 @@ test_that("regression predicts", {
     res = regression(algotestregressor, d.algo)
     expect_equal(unique(res$predictions$id), 11:20)
     by(res$predictions, res$predictions$id, function(ss) {
-        expect_equal(ss$algorithm, factor(c("c", "b")))
-        expect_equal(ss$score, c(0, 1))
+        expect_equal(ss$algorithm, factor(c("b", "c")))
+    })
+    by(res$predictions, res$predictions$algorithm, function(ss) {
+        expect_equal(ss$score, rep.int(c(1, 0), 5))
     })
 })
 
@@ -31,8 +33,10 @@ test_that("regression returns predictor", {
     preds = res$predictor(fold.algo)
     expect_equal(unique(preds$id), 1:10)
     by(preds, preds$id, function(ss) {
-        expect_equal(ss$algorithm, factor(c("c", "b")))
-        expect_equal(ss$score, c(0, 1))
+        expect_equal(ss$algorithm, factor(c("b", "c")))
+    })
+    by(preds, preds$algorithm, function(ss) {
+        expect_equal(ss$score, rep.int(c(1, 0), 5))
     })
 })
 
@@ -52,8 +56,10 @@ test_that("regression returns predictor that works without IDs", {
     preds = res$predictor(fold.algo[c(d.algo$features, d.algo$algorithmFeatures, d.algo$algos)])
     expect_equal(unique(preds$id), 1:10)
     by(preds, preds$id, function(ss) {
-        expect_equal(ss$algorithm, factor(c("c", "b")))
-        expect_equal(ss$score, c(0, 1))
+        expect_equal(ss$algorithm, factor(c("b", "c")))
+    })
+    by(preds, preds$algorithm, function(ss) {
+        expect_equal(ss$score, rep.int(c(1, 0), 5))
     })
 })
 

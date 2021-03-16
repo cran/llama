@@ -101,7 +101,7 @@ function(features, performances, algorithmFeatures=NULL, successes=NULL, costs=N
         retval = list(data=combined, features=setdiff(names(features), instanceCommon),
                       algorithmFeatures=setdiff(names(algorithmFeatures), algorithmCommon),
                       performance=perfcol, success=snames, minimize=minimize,
-                      best=best, ids=instanceCommon, algos=algorithmCommon)
+                      best=best, ids=instanceCommon, algos=algorithmCommon, algorithmNames=pnames)
     }
     
     

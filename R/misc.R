@@ -33,7 +33,7 @@ function(data=NULL) {
     if(is.null(data$algorithmFeatures)) {
         ids = data$data[data$ids]
     } else { 
-        best = best[seq(1, length(best), length(unique(data$data[[data$algos]])))]
+        best = best[seq(1, length(best), length(data$algorithmNames))]
         ids = unique(data$data[data$ids]) 
     }
     data.frame(ids, algorithm = factor(names(sort(table(best), decreasing=T)[1])), score = 1, iteration = 1)
@@ -54,7 +54,7 @@ function(data=NULL, factor=10) {
     if(is.null(data$algorithmFeatures)) {
         algos = data$performance
     } else {
-        algos = unique(data$data[[data$algos]])
+        algos = data$algorithmNames 
     }
     
     best = names(sort(sapply(algos, function(x) {
@@ -91,7 +91,7 @@ function(data=NULL) {
     if(is.null(data$algorithmFeatures)) {
         algos = data$performance
     } else {
-        algos = unique(data$data[[data$algos]])
+        algos = data$algorithmNames 
     }
     
     best = names(sort(sapply(algos, function(x) {
@@ -127,7 +127,7 @@ function(data=NULL) {
         best = names(sort(sapply(data$performance, function(x) { mean(data$data[,x]) }), decreasing=!data$minimize))[1]
         ids = data$data[data$ids]
     } else {
-        best = names(sort(sapply(unique(data$data[[data$algos]]), function(x) { mean(data$data[data$data[[data$algos]] == x, data$performance]) }), decreasing=!data$minimize))[1]
+        best = names(sort(sapply(data$algorithmNames, function(x) { mean(data$data[data$data[[data$algos]] == x, data$performance]) }), decreasing=!data$minimize))[1]
         ids = unique(data$data[data$ids])
     }
     data.frame(ids, algorithm = factor(best), score = 1, iteration = 1)
@@ -157,7 +157,7 @@ function(data=NULL, fold=NULL, pairs=FALSE) {
             } else {
                 perfs = data$data[data$train[[fold]],][c(data$performance, data$algos, data$ids)]
             }
-            combns = combn(unique(data$data[[data$algos]]), 2)
+            combns = combn(data$algorithmNames, 2)
             values = lapply(1:ncol(combns), function(j) {
                 p = perfs[perfs[[data$algos]] == combns[1,j], ]
                 return(p = p)

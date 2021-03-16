@@ -87,6 +87,7 @@ model learners.
 \item{ids}{a list of names denoting the instance ID columns.}
 \item{features}{a list of names denoting problem features.}
 \item{algorithmFeatures}{a list of names denoting algorithm features. `NULL` if no algorithm features are provided.}
+\item{algorithmNames}{a list of algorithm names. `NULL` if no algorithm features are provided. See `performance` field in that case.}
 \item{algos}{a column that stores names of algorithms. `NULL` if no algorithm features are provided.}
 \item{performance}{a list of names denoting algorithm performances. If algorithm features are provided, 
       a column name that stores algorithm performances. }

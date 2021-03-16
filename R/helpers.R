@@ -16,7 +16,7 @@ function(x, ...) {
   } else {
     cat(
       nrow(unique(x$data[x$ids])), " instances\n",
-			nrow(unique(x$data[x$algos])), " algorithms\n",
+			length(x$algorithmNames), " algorithms\n",
       "ID columns: ", paste(x$ids, collapse=", "), "\n",
       "Algorithm columns: ", paste(x$algos, collapse=", "), "\n",
       "Instance Features: ", paste(x$features, collapse=", "), "\n",

@@ -24,7 +24,7 @@ function(data=NULL, model=NULL, addCosts=NULL) {
     } else {
         d = data$data[c(data$ids, data$algos, data$performance)]
         perfs = convertLongToWide(data=d, timevar=data$algos, idvar=data$ids, prefix=paste(data$performance,".",sep=""))
-        perfs = perfs[unique(data$data[[data$algos]])]
+        perfs = perfs[data$algorithmNames]
     }
     
     opts = apply(perfs, 1, optfun)
@@ -35,7 +35,7 @@ function(data=NULL, model=NULL, addCosts=NULL) {
         d = data$data[c(data$ids, data$algos, data$performance)]
         d = convertLongToWide(data=d, timevar=data$algos, idvar=data$ids, prefix=paste(data$performance,".",sep=""), remove.id=FALSE)
         predictions$iid = match(do.call(paste, predictions[data$ids]), do.call(paste, d[data$ids]))
-        predictions$pid = match(predictions$algorithm, unique(data$data[[data$algos]]))
+        predictions$pid = match(predictions$algorithm, data$algorithmNames)
     }
     
     predictions$score = apply(predictions, 1, function(x) {

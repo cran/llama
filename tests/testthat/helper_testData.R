@@ -22,6 +22,7 @@ d.algo = list(data=rbind(cbind(fold.algo, id=rep.int(1:10, rep.int(2, 10))), cbi
               algos=c("algo"),
               minimize=T,
               performance=c("p"),
+              algorithmNames=c("b", "c"),
               best=rep.int(c(rep.int("c", 5), rep.int("b", 5)), 2))
 class(d.algo) = "llama.data"
 attr(d.algo, "hasSplits") = TRUE
@@ -52,6 +53,7 @@ d.three.algo = list(data=rbind(cbind(fold.three.algo, id=rep.int(1:10, rep.int(3
                algos=c("algo"),
                minimize=T,
                performance=c("p"),
+               algorithmNames=c("b", "c", "d"),
                best=rep.int(c(rep.int("c", 5), rep.int("b", 5)), 2))
 class(d.three.algo) = "llama.data"
 attr(d.three.algo, "hasSplits") = TRUE
@@ -110,7 +112,7 @@ foldmeas.algo = data.frame(p=rep.int(c(1, 0), 5),
                       s=rep.int(c(F, T), 5), a=rep(c("a", "b"), 5), f=rep.int(1, 5))
 dmeas.algo = list(data=rbind(cbind(foldmeas.algo, id=rep.int(1:5, rep.int(2, 5))), cbind(foldmeas.algo, id=rep.int(6:10, rep.int(2, 5)))),
              test=list(1:10, 11:20), performance=c("p"), minimize=T, ids=c("id"), 
-             success=c("s"), algos=("a"), algorithmFeatures=c("f"))
+             success=c("s"), algos=("a"), algorithmFeatures=c("f"), algorithmNames=c("a", "b"))
 
 asmeas = data.frame(algorithm=rep.int("a", 5), score=1, iteration=1)
 bsmeas = data.frame(algorithm=rep.int("b", 5), score=1, iteration=1)

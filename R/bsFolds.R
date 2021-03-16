@@ -13,7 +13,7 @@ function(data, nfolds = 10L, stratify = FALSE) {
         if(is.null(data$algorithmFeatures)) {
             best = data$best
         } else {
-            best = data$best[seq(1, length(data$best), length(unique(data$data[[data$algos]])))]
+            best = data$best[seq(1, length(data$best), length(data$algorithmNames))] 
         }
         stratifier = sapply(best, paste, collapse="-")
     } else {

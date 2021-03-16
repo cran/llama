@@ -30,7 +30,7 @@ test_that("parscores works without test split", {
     fold.algo = data.frame(id=rep.int(1:10, rep.int(2, 10)), p=rep.int(c(1, 0), 10),
                       s=rep.int(c(F, T), 10), f=rep.int(1, 20), a=rep.int(c("a", "b"), 10))
     d.algo = list(data=fold.algo, performance=c("p"), success=c("s"), ids=c("id"),
-                  algorithmFeatures=c("f"), algos=c("a"))
+                  algorithmFeatures=c("f"), algos=c("a"), algorithmNames=c("a", "b"))
     
     expect_equal(sum(parscores(d.algo, modelameas.algo)), 100)
     expect_equal(sum(parscores(d.algo, modelbmeas.algo)), 0)
@@ -84,7 +84,7 @@ test_that("parscores takes feature costs into account", {
     d.algo = list(data=rbind(cbind(id=rep.int(1:5, rep.int(2, 5)), fold.algo), cbind(id=rep.int(6:10, rep.int(2, 5)), fold.algo)),
              test=list(1:5, 6:10), performance=c("p"), ids=c("id"),
              success=c("s"), cost=c("c_cost"), features=c("c"), algos=c("a"),
-             algorithmFeatures=c("f"))
+             algorithmFeatures=c("f"), algorithmNames=c("a", "b"))
     
     expect_equal(sum(parscores(d.algo, modelameas.algo, timeout=1.5)), 150)
     expect_equal(sum(parscores(d.algo, modelameas.algo, timeout=5)), 30)
@@ -122,7 +122,7 @@ test_that("parscores does not cost unused features", {
     d.algo = list(data=rbind(cbind(id=rep.int(1:5, rep.int(2, 5)), fold.algo), cbind(id=rep.int(6:10, rep.int(2, 5)), fold.algo)),
                   test=list(1:5, 6:10), performance=c("p"), ids=c("id"),
                   success=c("s"), cost=c("c_cost", "f_cost"), features=c("c"), algos=c("a"),
-                  algorithmFeatures=c("sf"))
+                  algorithmFeatures=c("sf"), algorithmNames=c("a", "b"))
     
     expect_equal(sum(parscores(d.algo, modelameas.algo, timeout=1.5)), 150)
     expect_equal(sum(parscores(d.algo, modelameas.algo, timeout=3.5)), 30)
@@ -153,7 +153,7 @@ test_that("parscores takes feature cost groups into account", {
     d.algo = list(data=rbind(cbind(id=1:5, fold.algo), cbind(id=6:10, fold.algo)),
              test=list(1:5, 6:10), performance=c("p"), ids=c("id"), algos=c("a"),
              success=c("d"), costGroups=groups.algo, cost=c("g1", "g2"), features=c("f", "g"),
-             algorithmFeatures=c("sf"))
+             algorithmFeatures=c("sf"), algorithmNames=c("a"))
     e.algo = d.algo
     e.algo$features = c("f")
     

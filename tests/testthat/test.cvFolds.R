@@ -12,6 +12,7 @@ test_that("cvFolds splits", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))),
                   algorithmFeatures=c("f"),
+                  algorithmNames=c("a1", "a2"),
                   ids=c("id"),
                   algos=c("algo"),
                   best=rep.int("a1", 20))
@@ -34,6 +35,7 @@ test_that("cvFolds complains when there's not enough data", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 10), f=rep.int(1, 10), algo=rep(c("a1", "a2"), 5)), 
                              id=rep.int(1:5, rep.int(2, 5))),
                   algorithmFeatures=c("f"),
+                  algorithmNames=c("a1", "a2"),
                   ids=c("id"),
                   algos=c("algo"),
                   best=rep.int("a1", 10))
@@ -57,6 +59,7 @@ test_that("cvFolds splits with best list", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))),
                   algorithmFeatures=c("f"),
+                  algorithmNames=c("a1", "a2"),
                   ids=c("id"),
                   algos=c("algo"),
                   best=rep.int("a1", 20))
@@ -83,6 +86,7 @@ test_that("cvFolds allows to specify number of folds", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))),
                   algorithmFeatures=c("f"),
+                  algorithmNames=c("a1", "a2"),
                   ids=c("id"),
                   algos=c("algo"),
                   best=rep.int("a1", 20))
@@ -109,6 +113,7 @@ test_that("cvFolds allows -1 for leave-one-out", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))),
                   algorithmFeatures=c("f"),
+                  algorithmNames=c("a1", "a2"),
                   ids=c("id"),
                   algos=c("algo"),
                   best=rep.int("a1", 20))
@@ -140,6 +145,7 @@ test_that("cvFolds stratifies", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))),
                   algorithmFeatures=c("f"),
+                  algorithmNames=c("a1", "a2"),
                   ids=c("id"),
                   algos=c("algo"),
                   best=c(rep.int("a1", 10), rep.int("a2", 10)))
@@ -171,6 +177,7 @@ test_that("cvFolds replaces existing splits", {
     d.algo = list(data=cbind(data.frame(p=rep.int(0, 20), f=rep.int(1, 20), algo=rep(c("a1", "a2"), 10)), 
                              id=rep.int(1:10, rep.int(2, 10))),
                   algorithmFeatures=c("f"),
+                  algorithmNames=c("a1", "a2"),
                   ids=c("id"),
                   algos=c("algo"),
                   best=rep.int("a1", 20),

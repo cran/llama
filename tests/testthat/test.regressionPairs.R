@@ -141,7 +141,7 @@ test_that("regressionPairs respects minimize", {
     d.algo = list(data=rbind(cbind(fold.algo, id=rep.int(1:10, rep.int(2, 10))), cbind(fold.algo, id=rep.int(11:20, rep.int(2, 10)))),
              train=list(1:nrow(fold.algo)), test=list(1:nrow(fold.algo) + nrow(fold.algo)),
              features=c("a"), performance=c("p"), minimize=F, ids=c("id"),
-             algorithmFeatures=c("s"), algos=c("algo"))
+             algorithmFeatures=c("s"), algos=c("algo"), algorithmNames=c("foo", "bar"))
     class(d.algo) = "llama.data"
     attr(d.algo, "hasSplits") = TRUE
     res.algo = regressionPairs(regressor=algotestregressor, d.algo)

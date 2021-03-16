@@ -30,7 +30,7 @@ test_that("successes works without test split", {
     fold.algo = data.frame(id=rep.int(1:10, rep.int(2, 10)), p=rep.int(c(1, 0), 10),
                            s=rep.int(c(F, T), 10), f=rep.int(1, 20), a=rep.int(c("a", "b"), 10))
     d.algo = list(data=fold.algo, performance=c("p"), success=c("s"), ids=c("id"),
-                  algorithmFeatures=c("f"), algos=c("a"))
+                  algorithmFeatures=c("f"), algos=c("a"), algorithmNames=c("a", "b"))
     
     expect_equal(sum(successes(d.algo, modelameas.algo)), 0)
     expect_equal(sum(successes(d.algo, modelbmeas.algo)), 10)
@@ -65,7 +65,7 @@ test_that("sucesses takes feature costs into account", {
                            f=rep.int(1, 10), f_cost=rep.int(2, 10))
     d.algo = list(data=rbind(cbind(id=rep.int(1:5, rep.int(2, 5)), fold.algo), cbind(id=rep.int(6:10, rep.int(2, 5)), fold.algo)), 
                   test=list(1:10, 11:20), performance=c("p"), success=c("s"), ids=c("id"), features=c("f"),
-                  algorithmFeatures=c("sf"), algos=c("a"), cost=c("f_cost"))
+                  algorithmFeatures=c("sf"), algos=c("a"), cost=c("f_cost"), algorithmNames=c("a", "b"))
     
     expect_equal(sum(successes(d.algo, modelameas.algo, timeout=1.5)), 0)
     expect_equal(sum(successes(d.algo, modelameas.algo, timeout=5)), 10)
@@ -103,7 +103,7 @@ test_that("sucesses does not cost unused features", {
     d.algo = list(data=rbind(cbind(id=1:5, fold.algo), cbind(id=6:10, fold.algo)),
              test=list(1:5, 6:10), performance=c("p"), ids=c("id"),
              success=c("d"), costGroups=groups, cost=c("g1", "g2"), features=c("f", "g"),
-             algorithmFeatures=c("sf"), algos=c("algo"))
+             algorithmFeatures=c("sf"), algos=c("algo"), algorithmNames=c("a"))
     
     expect_equal(sum(successes(d.algo, modelameas.algo, timeout=1.5)), 0)
     expect_equal(sum(successes(d.algo, modelameas.algo, timeout=3.5)), 10)
@@ -133,7 +133,7 @@ test_that("successes takes feature cost groups into account", {
     d.algo = list(data=rbind(cbind(id=1:5, fold.algo), cbind(id=6:10, fold.algo)),
                   test=list(1:5, 6:10), performance=c("p"), ids=c("id"),
                   success=c("d"), costGroups=groups, cost=c("g1", "g2"), features=c("f", "g"),
-                  algorithmFeatures=c("sf"), algos=c("algo"))
+                  algorithmFeatures=c("sf"), algos=c("algo"), algorithmNames=c("a"))
     e.algo = d.algo
     e.algo$features = c("f")
     

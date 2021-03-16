@@ -18,7 +18,7 @@ test_that("misclassificationPenalties works without test split", {
     fold.algo = data.frame(id=rep(1:10, rep.int(2, 10)), p=rep(c(1, 0), 10),
                            f=rep(1, 20), a=rep(c("a", "b"), 10))
     d.algo = list(data=fold.algo, performance=c("p"), minimize=T, ids=c("id"), 
-             algorithmFeatures=c("f"), algos=c("a"))
+             algorithmFeatures=c("f"), algos=c("a"), algorithmNames=c("a", "b"))
     
     expect_equal(sum(misclassificationPenalties(d.algo, modelameas.algo)), 10)
     expect_equal(sum(misclassificationPenalties(d.algo, modelbmeas.algo)), 0)

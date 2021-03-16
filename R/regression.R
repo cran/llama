@@ -17,7 +17,7 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
     if(is.null(data$algorithmFeatures)) {
         totalBests = data.frame(target=factor(breakBestTies(data), levels=data$performance))
     } else {
-        totalBests = data.frame(target=factor(breakBestTies(data), levels=unique(data$data$algorithm)))
+        totalBests = data.frame(target=factor(breakBestTies(data), levels=data$algorithmNames))
     }
     
     predictions = rbind.fill(parallelMap(function(i) {
@@ -25,13 +25,27 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
             trf = pre(data$data[data$train[[i]],][data$features])
             tsf = pre(data$data[data$test[[i]],][data$features], trf$meta)
             trp = data$data[data$train[[i]],][data$performance]
+            ids = data$data[data$test[[i]],][data$ids]
         } else {
-            trf = pre(data$data[data$train[[i]],][c(data$features, data$algorithmFeatures)])
-            tsf = pre(data$data[data$test[[i]],][c(data$features, data$algorithmFeatures)], trf$meta)
-            trp = data$data[data$train[[i]],][data$performance]
+            trf = pre(data$data[data$train[[i]],][c(data$features, data$algorithmFeatures, data$algos)])
+            trf$features = arrange(trf$features, trf$features[[data$algos]])
+            trf$features[[data$algos]] = NULL
+
+            tsf = pre(data$data[data$test[[i]],][c(data$features, data$algorithmFeatures, data$algos)], trf$meta)
+            tsf$features = arrange(tsf$features, tsf$features[[data$algos]])
+            tsf$features[[data$algos]] = NULL
+
+            trp = data$data[data$train[[i]],][c(data$performance, data$algos)]
+            trp = arrange(trp, trp[[data$algos]])
+            trp[[data$algos]] = NULL
+
             tsa = data$data[data$test[[i]],][data$algos]
+            tsa = arrange(tsa, tsa[[data$algos]])
+        		
+            ids = data$data[data$test[[i]],][c(data$ids, data$algos)]
+            ids = arrange(ids, ids[[data$algos]])
+            ids[[data$algos]] = NULL
         }
-        ids = data$data[data$test[[i]],][data$ids]
         
         
         trainpredictions = data.frame(row.names=1:nrow(trf$features))
@@ -50,7 +64,11 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
             }
             colnames(performancePredictions) = data$performance
         } else {
-            task = makeRegrTask(id="regression", target="target", data=cbind(data.frame(target=data$data[data$train[[i]],data$performance], trf$features)))
+            target = data$data[data$train[[i]], c(data$performance, data$algos)]
+            target = arrange(target, target[[data$algos]])
+            target[[data$algos]] = NULL
+            target = unname(unlist(target))
+            task = makeRegrTask(id="regression", target="target", data=cbind(data.frame(target=target, trf$features)))
             model = train(regressor, task = task)
             if(!is.na(save.models)) {
                 saveRDS(list(model=model, train.data=task, test.data=tsf$features), file = paste(save.models, regressor$id, i, "rds", sep="."))
@@ -103,10 +121,16 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
     
     if(is.null(data$algorithmFeatures)) {
         fs = pre(data$data[data$features])
+        fp = data$data[data$performance]
     } else {
-        fs = pre(data$data[c(data$features, data$algorithmFeatures)])
+        fs = pre(data$data[c(data$features, data$algorithmFeatures, data$algos)])
+        fs$features = arrange(fs$features, fs$features[[data$algos]])
+        fs$features[[data$algos]] = NULL
+
+        fp = data$data[c(data$performance, data$algos)]
+        fp = arrange(fp, fp[[data$algos]])
+        fp[[data$algos]] = NULL
     }
-    fp = data$data[data$performance]
     
     fw = abs(apply(fp, 1, max) - apply(fp, 1, min))
     if(is.null(data$algorithmFeatures)) {
@@ -115,7 +139,11 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
             return(train(regressor, task = task))
         })
     } else {
-        task = makeRegrTask(id="regression", target="target", data=cbind(data.frame(target=data$data[[data$performance]]), fs$features))
+        target = data$data[c(data$performance, data$algos)]
+        target = arrange(target, target[[data$algos]])
+        target[[data$algos]] = NULL
+        target = unname(unlist(target))
+        task = makeRegrTask(id="regression", target="target", data=cbind(data.frame(target=target, fs$features)))
         models = train(regressor, task = task)
     }
     
@@ -142,18 +170,28 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
         if(is.null(data$algorithmFeatures)) {
             tsf = pre(x[data$features], fs$meta)
         } else {
-            tsf = pre(x[c(data$features, data$algorithmFeatures)], fs$meta)
-						tsa = x[data$algos]
+            tsf = pre(x[c(data$features, data$algorithmFeatures, data$algos)], fs$meta)
+            tsf$features = arrange(tsf$features, tsf$features[[data$algos]])
+            tsf$features[[data$algos]] = NULL
+
+            tsa = x[data$algos]
+            tsa = arrange(tsa, tsa[[data$algos]])
         }
         if(length(intersect(colnames(x), data$ids)) > 0) {
-            ids = x[data$ids]
-        } else {
+            if(is.null(data$algorithmFeatures)) {
+              ids = x[data$ids]
+            } else {
+              ids = x[c(data$ids, data$algos)]
+              ids = arrange(ids, ids[[data$algos]])
+              ids[[data$algos]] = NULL
+						}
+				} else {
             # don't have IDs, generate them
             if(is.null(data$algorithmFeatures)) {
                 ids = data.frame(id = 1:nrow(x))  
             } else {
                 n = nrow(x) / length(unique(x[[data$algos]]))
-                ids = data.frame(id = rep.int(1:n, rep.int(length(unique(x[[data$algos]])), n)))
+                ids = data.frame(id = rep.int(1:n, length(unique(x[[data$algos]]))))
             }
         }
         performancePredictions = data.frame(row.names=1:nrow(tsf$features))

@@ -28,8 +28,8 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
         totalBests = data.frame(target=factor(breakBestTies(data), levels=data$performance))
         combns = combn(data$performance, 2)
     } else {
-        totalBests = data.frame(target=factor(breakBestTies(data, pairs=TRUE), levels=unique(data$data[[data$algos]])))
-        combns = combn(unique(data$data[[data$algos]]), 2)
+        totalBests = data.frame(target=factor(breakBestTies(data, pairs=TRUE), levels=data$algorithmNames))
+        combns = combn(data$algorithmNames, 2)
     }
     
     predictions = rbind.fill(parallelMap(function(i) {
@@ -63,12 +63,12 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
             values = lapply(1:ncol(combns), function(j) {
                 a1 = which(data$data[data$train[[i]], data$algos] == combns[1,j])
                 a2 = which(data$data[data$train[[i]], data$algos] == combns[2,j])
-                trperf = data.frame(target=data$data[a1, data$performance] - data$data[a2, data$performance])
+                trperf = data.frame(target=data$data[data$train[[i]], ][a1, data$performance] - data$data[data$train[[i]], ][a2, data$performance])
                 
                 f1 = subset(data$data[data$train[[i]], ], data$data[data$train[[i]], data$algos] == combns[1,j])
                 f2 = subset(data$data[data$train[[i]], ], data$data[data$train[[i]], data$algos] == combns[2,j])
-                f1 = f1[data$algorithmFeatures]
-                f2 = f2[data$algorithmFeatures]
+                f1 = f1[1, data$algorithmFeatures]
+                f2 = f2[1, data$algorithmFeatures]
                 feature.diff = f1 - f2
                 
                 tr.features = trf$features[trf$features[[data$algos]] == combns[1,j], ]
@@ -284,7 +284,7 @@ function(regressor=NULL, data=NULL, pre=function(x, y=NULL) { list(features=x) }
                 if(is.null(data$algorithmFeatures)) {
                     algos = data$performance
                 } else {
-                    algos = unique(data$data[[data$algos]])
+                    algos = data$algorithmNames 
                 }
                 performanceSums = sapply(algos, function(p) {
                     sum(unlist(sapply(1:ncol(combns), signPair, p, sign, row, combns)))
